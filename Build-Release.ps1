@@ -31,6 +31,11 @@ Remove-Item -Force        $fragFile  -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $pubDir | Out-Null
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
+# Clear Release obj directories so stale MSBuild cache files from a previous
+# run cannot cause "file locked" errors during publish.
+Get-ChildItem -Path "$root\src" -Recurse -Filter "obj" -Directory |
+    ForEach-Object { Remove-Item (Join-Path $_.FullName "Release") -Recurse -Force -ErrorAction SilentlyContinue }
+
 # ── Publish (framework-dependent — required for Windows Service / LocalSystem) ──
 Write-Step "Publishing FireTower.Service..."
 dotnet publish "$root\src\FireTower.Service\FireTower.Service.csproj" `
