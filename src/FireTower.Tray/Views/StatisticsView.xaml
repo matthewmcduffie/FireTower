@@ -1,0 +1,54 @@
+<UserControl x:Class="FireTower.Tray.Views.StatisticsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+            <Button DockPanel.Dock="Right" Content="Refresh" Command="{Binding RefreshCommand}"/>
+            <TextBlock Text="Statistics" Style="{StaticResource HeadlineTextStyle}"/>
+        </DockPanel>
+
+        <UniformGrid Grid.Row="1" Columns="3" Rows="2">
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,8,8">
+                <StackPanel>
+                    <TextBlock Text="TOTAL VMS" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding Statistics.TotalVmCount}" FontSize="22" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="8,0,8,8">
+                <StackPanel>
+                    <TextBlock Text="HEALTHY" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding Statistics.HealthyCount}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource HealthyBrush}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="8,0,0,8">
+                <StackPanel>
+                    <TextBlock Text="CRITICAL" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding Statistics.CriticalCount}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,8,8,0">
+                <StackPanel>
+                    <TextBlock Text="RESTART COUNT" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding Statistics.RestartCount}" FontSize="22" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="8,8,8,0">
+                <StackPanel>
+                    <TextBlock Text="AVG RESTART (s)" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding Statistics.AverageRestartDurationSeconds, StringFormat=N1}" FontSize="22" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="8,8,0,0">
+                <StackPanel>
+                    <TextBlock Text="AVG HEALTH CHECK (ms)" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding Statistics.AverageHealthCheckDurationMs, StringFormat=N0}" FontSize="22" FontWeight="SemiBold"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+    </Grid>
+</UserControl>

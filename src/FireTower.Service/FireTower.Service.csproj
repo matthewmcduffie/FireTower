@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Worker">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-FireTower.Service-1c7aaf97-9a4e-4eac-b6a2-365fca84b8bb</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="8.0.1" />
+    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+    <PackageReference Include="Serilog.Sinks.EventLog" Version="4.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="StreamJsonRpc" Version="2.19.27" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FireTower.Core\FireTower.Core.csproj" />
+    <ProjectReference Include="..\FireTower.Data\FireTower.Data.csproj" />
+    <ProjectReference Include="..\FireTower.Providers.VirtualBox\FireTower.Providers.VirtualBox.csproj" />
+  </ItemGroup>
+</Project>

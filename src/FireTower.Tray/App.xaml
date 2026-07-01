@@ -1,0 +1,110 @@
+<Application x:Class="FireTower.Tray.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:tb="clr-namespace:Hardcodet.Wpf.TaskbarNotification;assembly=Hardcodet.NotifyIcon.Wpf"
+             xmlns:conv="clr-namespace:FireTower.Tray.Converters"
+             xmlns:views="clr-namespace:FireTower.Tray.Views"
+             xmlns:vm="clr-namespace:FireTower.Tray.ViewModels">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Theme.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Converters -->
+            <BooleanToVisibilityConverter x:Key="BoolToVis"/>
+            <conv:InverseBooleanConverter x:Key="InverseBoolConverter"/>
+            <conv:NullToVisibilityConverter x:Key="NullToCollapsedConverter"/>
+
+            <!-- DataTemplate → View mappings -->
+            <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
+                <views:DashboardView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:VirtualMachinesViewModel}">
+                <views:VirtualMachinesView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:DiscoveryViewModel}">
+                <views:DiscoveryView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:HealthProfilesViewModel}">
+                <views:HealthProfilesView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:RecoveryProfilesViewModel}">
+                <views:RecoveryProfilesView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:ProvidersViewModel}">
+                <views:ProvidersView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:LogsViewModel}">
+                <views:LogsView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:EventsViewModel}">
+                <views:EventsView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:StatisticsViewModel}">
+                <views:StatisticsView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
+                <views:SettingsView/>
+            </DataTemplate>
+            <DataTemplate DataType="{x:Type vm:AboutViewModel}">
+                <views:AboutView/>
+            </DataTemplate>
+
+            <!--
+                Tray icon.  The ContextMenu is a native WPF popup hosted in a separate
+                visual tree from the main window, so it does NOT inherit Application-level
+                implicit styles reliably.  All colours are set here explicitly using the
+                Kinetic Watchdog hex values rather than StaticResource references.
+            -->
+            <tb:TaskbarIcon x:Key="TrayIcon"
+                            ToolTipText="FireTower"
+                            MenuActivation="RightClick">
+                <tb:TaskbarIcon.ContextMenu>
+                    <ContextMenu Background="#1D2027"
+                                 BorderBrush="#424754"
+                                 BorderThickness="1"
+                                 Padding="2">
+                        <ContextMenu.Resources>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Background"   Value="Transparent"/>
+                                <Setter Property="Foreground"   Value="#E1E2EC"/>
+                                <Setter Property="Padding"      Value="12,6"/>
+                                <Setter Property="FontFamily"   Value="Segoe UI"/>
+                                <Setter Property="FontSize"     Value="13"/>
+                                <Style.Triggers>
+                                    <Trigger Property="IsHighlighted" Value="True">
+                                        <Setter Property="Background" Value="#272A31"/>
+                                        <Setter Property="Foreground" Value="#ADC6FF"/>
+                                    </Trigger>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Foreground" Value="#8C909F"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                            <Style TargetType="Separator">
+                                <Setter Property="Background" Value="#424754"/>
+                                <Setter Property="Height"     Value="1"/>
+                                <Setter Property="Margin"     Value="0,2"/>
+                            </Style>
+                        </ContextMenu.Resources>
+
+                        <MenuItem Header="Open FireTower"     Command="{Binding ShowWindowCommand}"/>
+                        <MenuItem Header="Dashboard"          Command="{Binding NavigateToCommand}" CommandParameter="Dashboard"/>
+                        <Separator/>
+                        <MenuItem Header="Discovery"          Command="{Binding NavigateToCommand}" CommandParameter="Discovery"/>
+                        <Separator/>
+                        <MenuItem Header="Pause Monitoring"   Command="{Binding PauseMonitoringCommand}"/>
+                        <MenuItem Header="Resume Monitoring"  Command="{Binding ResumeMonitoringCommand}"/>
+                        <Separator/>
+                        <MenuItem Header="View Logs"          Command="{Binding NavigateToCommand}" CommandParameter="Logs"/>
+                        <MenuItem Header="Settings"           Command="{Binding NavigateToCommand}" CommandParameter="Settings"/>
+                        <MenuItem Header="About"              Command="{Binding NavigateToCommand}" CommandParameter="About"/>
+                        <Separator/>
+                        <MenuItem Header="Exit"               Command="{Binding ExitCommand}"/>
+                    </ContextMenu>
+                </tb:TaskbarIcon.ContextMenu>
+            </tb:TaskbarIcon>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

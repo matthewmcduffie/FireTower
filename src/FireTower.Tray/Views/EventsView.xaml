@@ -1,0 +1,26 @@
+<UserControl x:Class="FireTower.Tray.Views.EventsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+            <Button DockPanel.Dock="Right" Content="Refresh" Command="{Binding RefreshCommand}"/>
+            <TextBlock Text="Events" Style="{StaticResource HeadlineTextStyle}"/>
+        </DockPanel>
+
+        <Border Grid.Row="1" Style="{StaticResource CardBorderStyle}" Padding="0">
+            <DataGrid ItemsSource="{Binding Events}" BorderThickness="0">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="160"/>
+                    <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120"/>
+                    <DataGridTextColumn Header="VM" Binding="{Binding VirtualMachine}" Width="160"/>
+                    <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

@@ -1,0 +1,90 @@
+<UserControl x:Class="FireTower.Tray.Views.DiscoveryView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Header + action buttons -->
+        <DockPanel Grid.Row="0" Margin="0,0,0,16">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="Add to Monitoring"
+                        Style="{StaticResource PrimaryButtonStyle}"
+                        Margin="0,0,0,0"
+                        IsEnabled="{Binding HasUnmonitoredSelection}"
+                        Command="{Binding AddSelectedToMonitoringCommand}"/>
+                <Button Content="Run Discovery" Margin="8,0,0,0"
+                        Command="{Binding RunDiscoveryCommand}"/>
+            </StackPanel>
+            <TextBlock Text="Discovery" Style="{StaticResource HeadlineTextStyle}" VerticalAlignment="Center"/>
+        </DockPanel>
+
+        <!-- Selection helpers -->
+        <DockPanel Grid.Row="1" Margin="0,0,0,12">
+            <TextBlock DockPanel.Dock="Left" VerticalAlignment="Center"
+                       Style="{StaticResource CaptionTextStyle}"
+                       Text="Check the VMs you want FireTower to monitor, then click Add to Monitoring."/>
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Select All"   Command="{Binding SelectAllCommand}"  Margin="0,0,4,0"/>
+                <Button Content="Select None"  Command="{Binding SelectNoneCommand}"/>
+            </StackPanel>
+        </DockPanel>
+
+        <!-- VM list with working checkboxes -->
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}" Padding="0">
+            <DataGrid ItemsSource="{Binding Discovered}"
+                      BorderThickness="0"
+                      IsReadOnly="False"
+                      SelectionMode="Single"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      RowHeight="32">
+                <DataGrid.Columns>
+
+                    <!-- Clickable checkbox — use a DataTemplate so it's always in view
+                         mode and doesn't require the row to enter edit mode first. -->
+                    <DataGridTemplateColumn Header="" Width="44" CanUserResize="False">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                                          IsEnabled="{Binding Vm.AlreadyMonitored, Converter={StaticResource InverseBoolConverter}}"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Name"     Binding="{Binding Vm.Name}"      Width="200" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Provider" Binding="{Binding Vm.ProviderId}" Width="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="State"    Binding="{Binding Vm.PowerState}" Width="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="OS"       Binding="{Binding Vm.OperatingSystem}" Width="150" IsReadOnly="True"/>
+
+                    <DataGridTemplateColumn Header="Status" Width="120" IsReadOnly="True">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock VerticalAlignment="Center" Margin="4,0">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Not Monitored"/>
+                                            <Setter Property="Foreground" Value="{StaticResource OnSurfaceVariantBrush}"/>
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Vm.AlreadyMonitored}" Value="True">
+                                                    <Setter Property="Text" Value="✓ Monitored"/>
+                                                    <Setter Property="Foreground" Value="{StaticResource HealthyBrush}"/>
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Config Path" Binding="{Binding Vm.ConfigurationPath}" Width="*" IsReadOnly="True"/>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

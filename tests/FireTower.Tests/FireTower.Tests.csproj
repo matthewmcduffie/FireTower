@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+
+    <!-- xUnit test methods intentionally read as behavior descriptions
+         (e.g. Client_can_connect) rather than following the Async-suffix
+         convention the VS Threading analyzers expect from production code. -->
+    <NoWarn>$(NoWarn);VSTHRD200</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="NSubstitute" Version="5.3.0" />
+    <PackageReference Include="xunit" Version="2.5.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\FireTower.Core\FireTower.Core.csproj" />
+    <ProjectReference Include="..\..\src\FireTower.Data\FireTower.Data.csproj" />
+    <ProjectReference Include="..\..\src\FireTower.Providers.VirtualBox\FireTower.Providers.VirtualBox.csproj" />
+    <ProjectReference Include="..\..\src\FireTower.Shared\FireTower.Shared.csproj" />
+    <ProjectReference Include="..\..\src\FireTower.Service\FireTower.Service.csproj" />
+    <ProjectReference Include="..\..\src\FireTower.Tray\FireTower.Tray.csproj" />
+  </ItemGroup>
+
+</Project>

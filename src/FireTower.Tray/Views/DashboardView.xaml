@@ -1,0 +1,53 @@
+<UserControl x:Class="FireTower.Tray.Views.DashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Dashboard" Style="{StaticResource HeadlineTextStyle}" Margin="0,0,0,16"/>
+
+        <UniformGrid Grid.Row="1" Rows="1" Margin="0,0,0,16">
+            <Border Style="{StaticResource CardBorderStyle}" Margin="0,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="SERVICE STATE" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding ServiceStatus.State}" FontSize="22" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="8,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="MONITORED VMS" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding ServiceStatus.MonitoredVmCount}" FontSize="22" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="8,0,8,0">
+                <StackPanel>
+                    <TextBlock Text="HEALTHY" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding ServiceStatus.HealthyVmCount}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource HealthyBrush}" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+            <Border Style="{StaticResource CardBorderStyle}" Margin="8,0,0,0">
+                <StackPanel>
+                    <TextBlock Text="FAILED" Style="{StaticResource CaptionTextStyle}"/>
+                    <TextBlock Text="{Binding ServiceStatus.FailedVmCount}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource CriticalBrush}" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+        </UniformGrid>
+
+        <Border Grid.Row="2" Style="{StaticResource CardBorderStyle}">
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Top" Text="Recent Events" FontWeight="SemiBold" Margin="0,0,0,8"/>
+                <DataGrid ItemsSource="{Binding RecentEvents}" BorderThickness="0">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Time" Binding="{Binding Timestamp}" Width="160"/>
+                        <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="120"/>
+                        <DataGridTextColumn Header="Message" Binding="{Binding Message}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </DockPanel>
+        </Border>
+    </Grid>
+</UserControl>

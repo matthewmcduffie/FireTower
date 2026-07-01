@@ -1,0 +1,26 @@
+<UserControl x:Class="FireTower.Tray.Views.AboutView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Margin="24">
+        <Border Style="{StaticResource CardBorderStyle}" VerticalAlignment="Top">
+            <StackPanel>
+                <TextBlock Text="FireTower" Style="{StaticResource HeadlineTextStyle}"/>
+                <TextBlock Text="VM Watchdog — monitors, recovers, and manages virtual machines."
+                           Margin="0,4,0,0"
+                           Style="{StaticResource CaptionTextStyle}"/>
+
+                <Separator Background="{StaticResource OutlineBrush}" Margin="0,16"/>
+
+                <TextBlock Text="{Binding TrayVersion, StringFormat='Tray version:    {0}'}" Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding ServiceStatus.Version, StringFormat='Service version: {0}'}" Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding ServiceStatus.State,   StringFormat='Service state:   {0}'}" Margin="0,0,0,4"/>
+                <TextBlock Text="{Binding ServiceStatus.StartedAt, StringFormat='Service started: {0:yyyy-MM-dd HH:mm:ss}'}" Margin="0,0,0,16"/>
+
+                <Separator Background="{StaticResource OutlineBrush}" Margin="0,0,0,16"/>
+
+                <TextBlock Text="© 2026 Matthew McDuffie. All rights reserved."
+                           Style="{StaticResource CaptionTextStyle}"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

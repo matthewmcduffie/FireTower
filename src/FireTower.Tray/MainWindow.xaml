@@ -1,0 +1,173 @@
+<Window x:Class="FireTower.Tray.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="FireTower" Height="720" Width="1180"
+        MinHeight="500" MinWidth="800"
+        WindowStartupLocation="CenterScreen"
+        Background="{StaticResource SurfaceBrush}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- ── Main content: sidebar + page ────────────────────────────────── -->
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Navigation sidebar -->
+            <Border Grid.Column="0" Background="{StaticResource SurfaceLowBrush}"
+                    BorderBrush="{StaticResource OutlineBrush}" BorderThickness="0,0,1,0">
+                <StackPanel Margin="0,16">
+                    <TextBlock Text="FIRETOWER" FontWeight="Bold" FontSize="16" Margin="16,0,16,16"/>
+
+                    <RadioButton Style="{StaticResource NavButtonStyle}" IsChecked="True" Content="Dashboard"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="Dashboard"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="Virtual Machines"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="VirtualMachines"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="Discovery"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="Discovery"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="Health Checks"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="HealthProfiles"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="Recovery Profiles"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="RecoveryProfiles"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="Providers"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="Providers"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="Logs"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="Logs"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="Events"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="Events"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="Statistics"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="Statistics"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="Settings"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="Settings"/>
+                    <RadioButton Style="{StaticResource NavButtonStyle}" Content="About"
+                                 Command="{Binding NavigateToCommand}" CommandParameter="About"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Page content + overlays -->
+            <Grid Grid.Column="1" Background="{StaticResource SurfaceBrush}">
+
+                <!-- Active page -->
+                <ContentControl Content="{Binding Navigation.CurrentViewModel}"/>
+
+                <!-- Busy progress bar running across the top of the content area -->
+                <Border VerticalAlignment="Top" Height="3" Panel.ZIndex="5"
+                        Visibility="{Binding IsPageBusy, Converter={StaticResource BoolToVis}}">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                            <GradientStop Color="Transparent" Offset="0"/>
+                            <GradientStop Color="#4D8EFF" Offset="0.4"/>
+                            <GradientStop Color="Transparent" Offset="1"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+                </Border>
+
+                <!-- Disconnected overlay — covers the whole content area so it is clear
+                     WHY buttons do nothing, rather than silently swallowing clicks. -->
+                <Grid Panel.ZIndex="10"
+                      Visibility="{Binding IsDisconnected, Converter={StaticResource BoolToVis}}">
+                    <Grid.Background>
+                        <SolidColorBrush Color="#0B0E15" Opacity="0.9"/>
+                    </Grid.Background>
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="480">
+                        <TextBlock Text="Not Connected to FireTower Service"
+                                   FontSize="20" FontWeight="SemiBold"
+                                   Foreground="{StaticResource WarningBrush}"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center"
+                                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                                   Margin="0,12,0,0" FontSize="13">
+                            <Run Text="Start the FireTower Windows Service and the tray application will reconnect automatically."/>
+                        </TextBlock>
+                        <TextBlock Text="{Binding ConnectionState, StringFormat='Status: {0}'}"
+                                   HorizontalAlignment="Center" Margin="0,8,0,0"
+                                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                                   Style="{StaticResource CaptionTextStyle}"/>
+                        <TextBlock Text="To start:  dotnet run --project src\FireTower.Service\FireTower.Service.csproj"
+                                   HorizontalAlignment="Center" Margin="0,8,0,0"
+                                   FontFamily="{StaticResource MonoFontFamily}"
+                                   FontSize="11"
+                                   Foreground="{StaticResource OnSurfaceVariantBrush}"/>
+                    </StackPanel>
+                </Grid>
+
+            </Grid>
+        </Grid>
+
+        <!-- ── Notification strip: errors (red) and status messages (green) ──
+             Shown between content and status bar, collapses when both are empty. -->
+        <Border Grid.Row="1"
+                Padding="16,8"
+                Visibility="{Binding HasNotification, Converter={StaticResource BoolToVis}}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Background" Value="{StaticResource SurfaceContainerBrush}"/>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding HasError}" Value="True">
+                            <Setter Property="Background" Value="#3B0000"/>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding HasStatus}" Value="True">
+                            <Setter Property="Background" Value="#002B00"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <DockPanel>
+                <TextBlock DockPanel.Dock="Left"
+                           Text="{Binding NotificationText}"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="{StaticResource OnSurfaceBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasError}" Value="True">
+                                    <Setter Property="Foreground" Value="#FF9090"/>
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding HasStatus}" Value="True">
+                                    <Setter Property="Foreground" Value="{StaticResource HealthyBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </DockPanel>
+        </Border>
+
+        <!-- ── Status bar ─────────────────────────────────────────────────── -->
+        <Border Grid.Row="2"
+                Background="{StaticResource SurfaceLowBrush}"
+                BorderBrush="{StaticResource OutlineBrush}"
+                BorderThickness="0,1,0,0">
+            <DockPanel Margin="16,5">
+                <Ellipse DockPanel.Dock="Left" Width="8" Height="8" Margin="0,0,6,0" VerticalAlignment="Center">
+                    <Ellipse.Style>
+                        <Style TargetType="Ellipse">
+                            <Setter Property="Fill" Value="{StaticResource DisabledBrush}"/>
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                    <Setter Property="Fill" Value="{StaticResource HealthyBrush}"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Ellipse.Style>
+                </Ellipse>
+                <TextBlock DockPanel.Dock="Left"
+                           Text="{Binding ConnectionState}"
+                           Style="{StaticResource CaptionTextStyle}"
+                           VerticalAlignment="Center"/>
+                <TextBlock DockPanel.Dock="Right"
+                           Text="{Binding ServiceStatus.State, StringFormat='Service: {0}'}"
+                           Style="{StaticResource CaptionTextStyle}"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"/>
+            </DockPanel>
+        </Border>
+    </Grid>
+</Window>
