@@ -32,12 +32,12 @@
             <Directory Id="STARTMENU" Name="FireTower"/>
         </StandardDirectory>
 
-        <!-- ── Windows Service executable (needs ServiceInstall/Control) ── -->
+        <!-- ── Service executable + Windows Service registration ────────── -->
 
         <Component Id="C_ServiceExe" Directory="INSTALLFOLDER" Guid="*">
             <File Id="F_ServiceExe"
                   Name="FireTower.Service.exe"
-                  Source="$(PublishDir)FireTower.Service.exe"
+                  Source="$(ServiceExe)"
                   KeyPath="yes"/>
 
             <ServiceInstall
@@ -59,28 +59,27 @@
                 Wait="yes"/>
         </Component>
 
-        <!-- ── All other published files (DLLs, configs, Tray exe, etc.) ─
-             WiX auto-generates one component per file from the publish output.
-             FireTower.Service.exe is excluded — it has its own component above.
-             PDB debug symbols and the development appsettings are excluded. -->
+        <!-- ── Tray executable ───────────────────────────────────────────── -->
 
-        <ComponentGroup Id="CG_Published" Directory="INSTALLFOLDER">
-            <Files Source="$(PublishDir)**"
-                   ExcludePattern="FireTower.Service.exe;*.pdb;appsettings.Development.json"/>
-        </ComponentGroup>
+        <Component Id="C_TrayExe" Directory="INSTALLFOLDER" Guid="*">
+            <File Id="F_TrayExe"
+                  Name="FireTower.Tray.exe"
+                  Source="$(TrayExe)"
+                  KeyPath="yes"/>
+        </Component>
 
         <!-- ── ProgramData directories ───────────────────────────────────── -->
 
-        <Component Id="C_ConfigDir"   Directory="CONFIGDIR"   Guid="AA7B2C3D-E4F5-6A7B-8C9D-E0F1A2B3C4D5">
+        <Component Id="C_ConfigDir"  Directory="CONFIGDIR"  Guid="AA7B2C3D-E4F5-6A7B-8C9D-E0F1A2B3C4D5">
             <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
         </Component>
-        <Component Id="C_LogsDir"     Directory="LOGSDIR"     Guid="BB8C3D4E-F5A6-7B8C-9D0E-F1A2B3C4D5E6">
+        <Component Id="C_LogsDir"    Directory="LOGSDIR"    Guid="BB8C3D4E-F5A6-7B8C-9D0E-F1A2B3C4D5E6">
             <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
         </Component>
-        <Component Id="C_DataDir"     Directory="DATADIR"     Guid="CC9D4E5F-A6B7-8C9D-0E1F-A2B3C4D5E6F7">
+        <Component Id="C_DataDir"    Directory="DATADIR"    Guid="CC9D4E5F-A6B7-8C9D-0E1F-A2B3C4D5E6F7">
             <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
         </Component>
-        <Component Id="C_BackupsDir"  Directory="BACKUPSDIR"  Guid="DD0E5F6A-B7C8-9D0E-1F2A-B3C4D5E6F7A8">
+        <Component Id="C_BackupsDir" Directory="BACKUPSDIR" Guid="DD0E5F6A-B7C8-9D0E-1F2A-B3C4D5E6F7A8">
             <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
         </Component>
 
@@ -100,13 +99,13 @@
         <!-- ── Feature ──────────────────────────────────────────────────── -->
 
         <Feature Id="F_Complete" Title="FireTower" Level="1">
-            <ComponentRef        Id="C_ServiceExe"/>
-            <ComponentGroupRef   Id="CG_Published"/>
-            <ComponentRef        Id="C_ConfigDir"/>
-            <ComponentRef        Id="C_LogsDir"/>
-            <ComponentRef        Id="C_DataDir"/>
-            <ComponentRef        Id="C_BackupsDir"/>
-            <ComponentRef        Id="C_StartMenuShortcut"/>
+            <ComponentRef Id="C_ServiceExe"/>
+            <ComponentRef Id="C_TrayExe"/>
+            <ComponentRef Id="C_ConfigDir"/>
+            <ComponentRef Id="C_LogsDir"/>
+            <ComponentRef Id="C_DataDir"/>
+            <ComponentRef Id="C_BackupsDir"/>
+            <ComponentRef Id="C_StartMenuShortcut"/>
         </Feature>
 
     </Package>
