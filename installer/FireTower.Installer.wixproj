@@ -2,18 +2,22 @@
   <PropertyGroup>
     <OutputType>Package</OutputType>
     <InstallerPlatform>x64</InstallerPlatform>
-    <!-- ICE validation (WIX1105) requires admin rights; disabled here so non-elevated
-         CI agents can build cleanly. Run validation explicitly in release pipelines. -->
     <SuppressValidation>true</SuppressValidation>
+
+    <!--
+      Both Service and Tray are published to the same folder so shared DLLs
+      are deduplicated automatically. Build-Release.ps1 does the publishing
+      before invoking this project.
+    -->
+    <PublishDir>$(MSBuildThisFileDirectory)publish\</PublishDir>
+
     <DefineConstants>
       ProductVersion=1.0.0;
-      ServiceBinDir=$(MSBuildThisFileDirectory)..\src\FireTower.Service\bin\Release\net8.0-windows;
-      TrayBinDir=$(MSBuildThisFileDirectory)..\src\FireTower.Tray\bin\Release\net8.0-windows
+      PublishDir=$(PublishDir)
     </DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2"/>
   </ItemGroup>
-
 </Project>

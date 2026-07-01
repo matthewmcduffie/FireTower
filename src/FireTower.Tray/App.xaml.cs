@@ -1,5 +1,4 @@
 using System.Windows;
-using FireTower.Core.Configuration.Paths;
 using FireTower.Tray.Navigation;
 using FireTower.Tray.Services;
 using FireTower.Tray.Services.Ipc;
@@ -70,7 +69,6 @@ public partial class App : System.Windows.Application
         var collection = new ServiceCollection();
 
         collection.AddLogging();
-        collection.AddSingleton<IFireTowerPaths, FireTowerPaths>();
         collection.AddSingleton<ITrayPreferencesService, TrayPreferencesService>();
         collection.AddSingleton<IUiDispatcher, WpfDispatcher>();
         collection.AddSingleton<IFireTowerIpcClient, FireTowerIpcClient>();

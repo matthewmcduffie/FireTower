@@ -1,14 +1,8 @@
 <Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
      xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
 
-    <!--
-        UpgradeCode must remain stable across every release so Windows Installer can
-        detect previous versions and upgrade them cleanly. ProductCode auto-increments
-        per build (marked with "*") so each new installer is treated as a different
-        product version for major upgrades.
-    -->
     <Package Name="FireTower"
-             Manufacturer="FireTower"
+             Manufacturer="Matthew McDuffie"
              Version="$(ProductVersion)"
              UpgradeCode="4C1B2A3D-5E6F-7A8B-9C0D-E1F2A3B4C5D6"
              ProductCode="*"
@@ -16,16 +10,10 @@
              Scope="perMachine">
 
         <MajorUpgrade DowngradeErrorMessage="A newer version of FireTower is already installed."/>
-
         <MediaTemplate EmbedCab="yes"/>
-
-        <!--
-            Standard WixUI InstallDir dialog for user-selectable install path,
-            matching installer.md's requirement for an admin-friendly installer.
-        -->
         <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER"/>
 
-        <!-- ── DIRECTORIES ─────────────────────────────────────────────────── -->
+        <!-- ── Directories ──────────────────────────────────────────────── -->
 
         <StandardDirectory Id="ProgramFiles64Folder">
             <Directory Id="INSTALLFOLDER" Name="FireTower"/>
@@ -33,9 +21,9 @@
 
         <StandardDirectory Id="CommonAppDataFolder">
             <Directory Id="PROGRAMDATAFOLDER" Name="FireTower">
-                <Directory Id="CONFIGDIR" Name="config"/>
-                <Directory Id="LOGSDIR"   Name="logs"/>
-                <Directory Id="DATADIR"   Name="data"/>
+                <Directory Id="CONFIGDIR"  Name="config"/>
+                <Directory Id="LOGSDIR"    Name="logs"/>
+                <Directory Id="DATADIR"    Name="data"/>
                 <Directory Id="BACKUPSDIR" Name="backups"/>
             </Directory>
         </StandardDirectory>
@@ -44,25 +32,19 @@
             <Directory Id="STARTMENU" Name="FireTower"/>
         </StandardDirectory>
 
-        <!-- ── COMPONENTS ─────────────────────────────────────────────────── -->
+        <!-- ── Windows Service executable (needs ServiceInstall/Control) ── -->
 
-        <!--
-            FireTower.Service executable + Windows Service registration.
-            In WiX v5, ServiceInstall and ServiceControl are built into the core
-            schema without a namespace prefix (they were part of the util extension
-            in WiX v3 but moved to core in v4/v5).
-        -->
         <Component Id="C_ServiceExe" Directory="INSTALLFOLDER" Guid="*">
             <File Id="F_ServiceExe"
                   Name="FireTower.Service.exe"
-                  Source="$(ServiceBinDir)\FireTower.Service.exe"
+                  Source="$(PublishDir)FireTower.Service.exe"
                   KeyPath="yes"/>
 
             <ServiceInstall
                 Id="FireTowerService"
                 Name="FireTower"
                 DisplayName="FireTower VM Watchdog"
-                Description="Monitors, recovers, and manages virtual machines running on this host."
+                Description="Monitors and automatically recovers VirtualBox virtual machines."
                 Type="ownProcess"
                 Start="auto"
                 ErrorControl="normal"
@@ -77,42 +59,32 @@
                 Wait="yes"/>
         </Component>
 
-        <Component Id="C_TrayExe" Directory="INSTALLFOLDER" Guid="*">
-            <File Id="F_TrayExe"
-                  Name="FireTower.Tray.exe"
-                  Source="$(TrayBinDir)\FireTower.Tray.exe"
-                  KeyPath="yes"/>
+        <!-- ── All other published files (DLLs, configs, Tray exe, etc.) ─
+             WiX auto-generates one component per file from the publish output.
+             FireTower.Service.exe is excluded — it has its own component above.
+             PDB debug symbols and the development appsettings are excluded. -->
+
+        <ComponentGroup Id="CG_Published" Directory="INSTALLFOLDER">
+            <Files Source="$(PublishDir)**"
+                   ExcludePattern="FireTower.Service.exe;*.pdb;appsettings.Development.json"/>
+        </ComponentGroup>
+
+        <!-- ── ProgramData directories ───────────────────────────────────── -->
+
+        <Component Id="C_ConfigDir"   Directory="CONFIGDIR"   Guid="AA7B2C3D-E4F5-6A7B-8C9D-E0F1A2B3C4D5">
+            <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
+        </Component>
+        <Component Id="C_LogsDir"     Directory="LOGSDIR"     Guid="BB8C3D4E-F5A6-7B8C-9D0E-F1A2B3C4D5E6">
+            <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
+        </Component>
+        <Component Id="C_DataDir"     Directory="DATADIR"     Guid="CC9D4E5F-A6B7-8C9D-0E1F-A2B3C4D5E6F7">
+            <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
+        </Component>
+        <Component Id="C_BackupsDir"  Directory="BACKUPSDIR"  Guid="DD0E5F6A-B7C8-9D0E-1F2A-B3C4D5E6F7A8">
+            <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
         </Component>
 
-        <!--
-            ProgramData directories created with broad permissions so both LocalSystem
-            (the service account) and interactive users (tray app, manual inspection)
-            can read and write them, per installer.md "Apply appropriate permissions."
-            In WiX v5, Permission is a child of CreateFolder (not PermissionEx as in v3).
-        -->
-        <Component Id="C_ConfigDir" Directory="CONFIGDIR" Guid="AA7B2C3D-E4F5-6A7B-8C9D-E0F1A2B3C4D5">
-            <CreateFolder>
-                <Permission GenericAll="yes" User="Everyone"/>
-            </CreateFolder>
-        </Component>
-
-        <Component Id="C_LogsDir" Directory="LOGSDIR" Guid="BB8C3D4E-F5A6-7B8C-9D0E-F1A2B3C4D5E6">
-            <CreateFolder>
-                <Permission GenericAll="yes" User="Everyone"/>
-            </CreateFolder>
-        </Component>
-
-        <Component Id="C_DataDir" Directory="DATADIR" Guid="CC9D4E5F-A6B7-8C9D-0E1F-A2B3C4D5E6F7">
-            <CreateFolder>
-                <Permission GenericAll="yes" User="Everyone"/>
-            </CreateFolder>
-        </Component>
-
-        <Component Id="C_BackupsDir" Directory="BACKUPSDIR" Guid="DD0E5F6A-B7C8-9D0E-1F2A-B3C4D5E6F7A8">
-            <CreateFolder>
-                <Permission GenericAll="yes" User="Everyone"/>
-            </CreateFolder>
-        </Component>
+        <!-- ── Start Menu shortcut ──────────────────────────────────────── -->
 
         <Component Id="C_StartMenuShortcut" Directory="STARTMENU" Guid="*">
             <Shortcut Id="S_TrayShortcut"
@@ -121,23 +93,20 @@
                       Target="[INSTALLFOLDER]FireTower.Tray.exe"
                       WorkingDirectory="INSTALLFOLDER"/>
             <RemoveFolder Id="RF_StartMenu" Directory="STARTMENU" On="uninstall"/>
-            <RegistryValue Root="HKCU"
-                           Key="Software\FireTower"
-                           Name="StartMenuInstalled"
-                           Type="integer" Value="1"
-                           KeyPath="yes"/>
+            <RegistryValue Root="HKCU" Key="Software\FireTower"
+                           Name="StartMenuInstalled" Type="integer" Value="1" KeyPath="yes"/>
         </Component>
 
-        <!-- ── FEATURE TREE ───────────────────────────────────────────────── -->
+        <!-- ── Feature ──────────────────────────────────────────────────── -->
 
         <Feature Id="F_Complete" Title="FireTower" Level="1">
-            <ComponentRef Id="C_ServiceExe"/>
-            <ComponentRef Id="C_TrayExe"/>
-            <ComponentRef Id="C_ConfigDir"/>
-            <ComponentRef Id="C_LogsDir"/>
-            <ComponentRef Id="C_DataDir"/>
-            <ComponentRef Id="C_BackupsDir"/>
-            <ComponentRef Id="C_StartMenuShortcut"/>
+            <ComponentRef        Id="C_ServiceExe"/>
+            <ComponentGroupRef   Id="CG_Published"/>
+            <ComponentRef        Id="C_ConfigDir"/>
+            <ComponentRef        Id="C_LogsDir"/>
+            <ComponentRef        Id="C_DataDir"/>
+            <ComponentRef        Id="C_BackupsDir"/>
+            <ComponentRef        Id="C_StartMenuShortcut"/>
         </Feature>
 
     </Package>
