@@ -11,7 +11,31 @@
 
         <MajorUpgrade DowngradeErrorMessage="A newer version of FireTower is already installed."/>
         <MediaTemplate EmbedCab="yes"/>
+
+        <!--
+            "Launch FireTower" checkbox on the installer finish page.
+            Checked by default so first-time users see the app immediately.
+        -->
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX"     Value="1"/>
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch FireTower"/>
         <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER"/>
+
+        <!--
+            Launch the tray app when the user clicks Finish.
+            Runs in the UI process context (the logged-in user, not elevated)
+            so the window appears on the desktop rather than the secure desktop.
+        -->
+        <CustomAction Id="CA_LaunchTray"
+                      FileRef="F_TrayExe"
+                      ExeCommand=""
+                      Execute="immediate"
+                      Return="asyncNoWait"/>
+
+        <InstallUISequence>
+            <Custom Action="CA_LaunchTray" OnExit="success">
+                WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed AND NOT REMOVE
+            </Custom>
+        </InstallUISequence>
 
         <!-- ── Directories ──────────────────────────────────────────────── -->
 
@@ -32,7 +56,7 @@
             <Directory Id="STARTMENU" Name="FireTower"/>
         </StandardDirectory>
 
-        <!-- ── Service executable + Windows Service registration ────────── -->
+        <!-- ── Service exe + Windows Service registration ───────────────── -->
 
         <Component Id="C_ServiceExe" Directory="INSTALLFOLDER" Guid="*">
             <File Id="F_ServiceExe"
@@ -50,16 +74,22 @@
                 ErrorControl="normal"
                 Account="LocalSystem"/>
 
+            <!--
+                Wait="no": the installer signals the service to start and moves on
+                without blocking until the service reports "Running".  On a cold start
+                the service initialises VirtualBox and SQLite, which can exceed the
+                30-second Windows Service startup timeout on slower hardware.
+            -->
             <ServiceControl
                 Id="FireTowerServiceControl"
                 Name="FireTower"
                 Start="install"
                 Stop="both"
                 Remove="uninstall"
-                Wait="yes"/>
+                Wait="no"/>
         </Component>
 
-        <!-- ── Tray executable ───────────────────────────────────────────── -->
+        <!-- ── Tray exe (all other app files come from CG_AppFiles) ─────── -->
 
         <Component Id="C_TrayExe" Directory="INSTALLFOLDER" Guid="*">
             <File Id="F_TrayExe"
@@ -67,6 +97,11 @@
                   Source="$(TrayExe)"
                   KeyPath="yes"/>
         </Component>
+
+        <!-- ── All remaining published files (DLLs, configs, etc.) ──────── -->
+
+        <!--  CG_AppFiles is generated at build time by HarvestDirectory in
+              FireTower.Installer.wixproj from the publish output folder.       -->
 
         <!-- ── ProgramData directories ───────────────────────────────────── -->
 
@@ -99,13 +134,14 @@
         <!-- ── Feature ──────────────────────────────────────────────────── -->
 
         <Feature Id="F_Complete" Title="FireTower" Level="1">
-            <ComponentRef Id="C_ServiceExe"/>
-            <ComponentRef Id="C_TrayExe"/>
-            <ComponentRef Id="C_ConfigDir"/>
-            <ComponentRef Id="C_LogsDir"/>
-            <ComponentRef Id="C_DataDir"/>
-            <ComponentRef Id="C_BackupsDir"/>
-            <ComponentRef Id="C_StartMenuShortcut"/>
+            <ComponentRef      Id="C_ServiceExe"/>
+            <ComponentRef      Id="C_TrayExe"/>
+            <ComponentGroupRef Id="CG_AppFiles"/>
+            <ComponentRef      Id="C_ConfigDir"/>
+            <ComponentRef      Id="C_LogsDir"/>
+            <ComponentRef      Id="C_DataDir"/>
+            <ComponentRef      Id="C_BackupsDir"/>
+            <ComponentRef      Id="C_StartMenuShortcut"/>
         </Feature>
 
     </Package>

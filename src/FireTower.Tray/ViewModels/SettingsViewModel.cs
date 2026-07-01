@@ -144,6 +144,11 @@ public sealed partial class SettingsViewModel : ViewModelBase
         preferences.LaunchAtLogin = LaunchAtLogin;
         preferences.Theme = Theme;
         await _preferences.SaveAsync(preferences);
+
+        // Apply the startup preference immediately so the user doesn't need to
+        // relaunch the app for the change to take effect.
+        App.ApplyLaunchAtLogin(preferences.LaunchAtLogin);
+
         StatusMessage = "Preferences saved.";
     }
 }

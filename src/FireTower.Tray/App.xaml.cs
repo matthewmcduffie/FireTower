@@ -36,6 +36,12 @@ public partial class App : System.Windows.Application
             var preferencesService = services.GetRequiredService<ITrayPreferencesService>();
             await preferencesService.LoadAsync();
 
+            // Register (or unregister) the tray app in the user's startup items
+            // so it launches automatically when they log in. This runs in the user's
+            // own context so the Run key is written to the correct HKCU hive, which
+            // a per-machine MSI cannot reliably do.
+            ApplyLaunchAtLogin(preferencesService.Current.LaunchAtLogin);
+
             var ipcClient = services.GetRequiredService<IFireTowerIpcClient>();
             ipcClient.Start();
 
@@ -95,6 +101,34 @@ public partial class App : System.Windows.Application
     }
 
     private ServiceProvider? _serviceProvider;
+
+    /// <summary>
+    /// Registers or removes FireTower from the current user's Windows startup items.
+    /// Called on every launch so the preference stays in sync even if the user
+    /// edited it outside of the Settings page.
+    /// </summary>
+    public static void ApplyLaunchAtLogin(bool enable)
+    {
+        const string runKey  = @"SOFTWARE\Microsoft\Windows\CurrentVersion\Run";
+        const string appName = "FireTower";
+        try
+        {
+            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(runKey, writable: true);
+            if (key is null) return;
+            if (enable)
+            {
+                var path = Environment.ProcessPath
+                    ?? System.Diagnostics.Process.GetCurrentProcess().MainModule?.FileName;
+                if (path is not null)
+                    key.SetValue(appName, $"\"{path}\"");
+            }
+            else
+            {
+                key.DeleteValue(appName, throwOnMissingValue: false);
+            }
+        }
+        catch { /* non-critical — preference is stored in ui.json regardless */ }
+    }
 
     protected override void OnExit(ExitEventArgs e)
     {
