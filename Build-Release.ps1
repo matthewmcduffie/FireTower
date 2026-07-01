@@ -26,25 +26,32 @@ function Write-Fail([string]$msg) { Write-Host $msg -ForegroundColor Red }
 
 # ── Clean ─────────────────────────────────────────────────────────────────
 Write-Step "Cleaning..."
+
+# Kill any running FireTower processes so they cannot hold file locks.
+try {
+    Get-WmiObject Win32_Process |
+        Where-Object { $_.CommandLine -match 'FireTower' } |
+        ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }
+    Start-Sleep -Milliseconds 500
+} catch { }
+
 Remove-Item -Recurse -Force $pubDir  -ErrorAction SilentlyContinue
 Remove-Item -Force        $fragFile  -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $pubDir | Out-Null
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
-# Clear Release obj directories so stale MSBuild cache files from a previous
-# run cannot cause "file locked" errors during publish.
-Get-ChildItem -Path "$root\src" -Recurse -Filter "obj" -Directory |
-    ForEach-Object { Remove-Item (Join-Path $_.FullName "Release") -Recurse -Force -ErrorAction SilentlyContinue }
+# Use dotnet clean to properly reset MSBuild state for all projects.
+dotnet clean "$root\FireTower.sln" -c Release --nologo -q 2>$null
 
 # ── Publish (framework-dependent — required for Windows Service / LocalSystem) ──
 Write-Step "Publishing FireTower.Service..."
 dotnet publish "$root\src\FireTower.Service\FireTower.Service.csproj" `
-    -c Release -o $pubDir --nologo -q
+    -c Release -o $pubDir --nologo
 if ($LASTEXITCODE -ne 0) { Write-Fail "Service publish failed."; exit 1 }
 
 Write-Step "Publishing FireTower.Tray..."
 dotnet publish "$root\src\FireTower.Tray\FireTower.Tray.csproj" `
-    -c Release -o $pubDir --nologo -q
+    -c Release -o $pubDir --nologo
 if ($LASTEXITCODE -ne 0) { Write-Fail "Tray publish failed."; exit 1 }
 
 $total = (Get-ChildItem $pubDir -File).Count
