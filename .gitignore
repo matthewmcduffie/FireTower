@@ -44,3 +44,4 @@ installer/obj/
 
 guide/
 installer/publish/
+installer/AppFiles.wxs

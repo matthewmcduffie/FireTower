@@ -32,9 +32,8 @@
                       Return="asyncNoWait"/>
 
         <InstallUISequence>
-            <Custom Action="CA_LaunchTray" OnExit="success">
-                WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed AND NOT REMOVE
-            </Custom>
+            <Custom Action="CA_LaunchTray" OnExit="success"
+                    Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed AND NOT REMOVE"/>
         </InstallUISequence>
 
         <!-- ── Directories ──────────────────────────────────────────────── -->

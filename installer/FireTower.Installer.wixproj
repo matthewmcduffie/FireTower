@@ -3,45 +3,8 @@
     <OutputType>Package</OutputType>
     <InstallerPlatform>x64</InstallerPlatform>
     <SuppressValidation>true</SuppressValidation>
-    <OutputName>FireTower</OutputName>
-    <PublishDir>$(MSBuildThisFileDirectory)publish\</PublishDir>
-    <ServiceExe>$(PublishDir)FireTower.Service.exe</ServiceExe>
-    <TrayExe>$(PublishDir)FireTower.Tray.exe</TrayExe>
-    <DefineConstants>
-      ProductVersion=$(ProductVersion);
-      ServiceExe=$(ServiceExe);
-      TrayExe=$(TrayExe)
-    </DefineConstants>
   </PropertyGroup>
-
   <ItemGroup>
     <PackageReference Include="WixToolset.UI.wixext" Version="5.0.2"/>
   </ItemGroup>
-
-  <!--
-    Harvest all published files into CG_AppFiles, excluding the service exe
-    (which has its own hand-coded component for ServiceInstall/ServiceControl),
-    debug symbols, and dev-only config files.
-  -->
-  <ItemGroup>
-    <HarvestDirectory Include="$(PublishDir)"
-                      ComponentGroupName="CG_AppFiles"
-                      DirectoryRefId="INSTALLFOLDER"
-                      SuppressRootDirectory="true"
-                      Exclude="FireTower.Service.exe;*.pdb;appsettings.Development.json"/>
-  </ItemGroup>
-
-  <!--
-    Publish both apps to the shared publish folder before building the MSI so
-    the WiX harvester sees the full, current file set.
-    Service: framework-dependent (not single-file) so it works correctly when
-             run as LocalSystem, where %TEMP% may not be usable for extraction.
-    Tray:    same, for consistency and faster startup.
-  -->
-  <Target Name="PublishApps" BeforeTargets="Build">
-    <Message Text="Publishing FireTower.Service..." Importance="high"/>
-    <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\src\FireTower.Service\FireTower.Service.csproj&quot; -c Release -o &quot;$(PublishDir)&quot; --nologo -q"/>
-    <Message Text="Publishing FireTower.Tray..." Importance="high"/>
-    <Exec Command="dotnet publish &quot;$(MSBuildThisFileDirectory)..\src\FireTower.Tray\FireTower.Tray.csproj&quot; -c Release -o &quot;$(PublishDir)&quot; --nologo -q"/>
-  </Target>
 </Project>
