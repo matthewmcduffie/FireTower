@@ -60,39 +60,41 @@
             <Directory Id="STARTMENU" Name="FireTower"/>
         </StandardDirectory>
 
-        <!-- ── Service exe + Windows Service registration ───────────────── -->
+        <!-- ── Service exe ───────────────────────────────────────────────── -->
 
         <Component Id="C_ServiceExe" Directory="INSTALLFOLDER" Guid="*">
             <File Id="F_ServiceExe"
                   Name="FireTower.Service.exe"
                   Source="$(ServiceExe)"
                   KeyPath="yes"/>
-
-            <ServiceInstall
-                Id="FireTowerService"
-                Name="FireTower"
-                DisplayName="FireTower VM Watchdog"
-                Description="Monitors and automatically recovers VirtualBox virtual machines."
-                Type="ownProcess"
-                Start="auto"
-                ErrorControl="normal"
-                Account="LocalSystem"/>
-
-            <!--
-                The service is registered as Start="auto" so Windows starts it at every
-                boot automatically. We do NOT attempt to start it during installation
-                because the MSI's SCM context can trigger permission errors on some systems.
-                After installation the user can start it from Windows Services, or it will
-                start automatically on the next boot.  The tray app shows a clear
-                "Waiting for FireTower Service..." message until the connection is made.
-            -->
-            <ServiceControl
-                Id="FireTowerServiceControl"
-                Name="FireTower"
-                Stop="both"
-                Remove="uninstall"
-                Wait="no"/>
         </Component>
+
+        <!--
+            Service registration via the executable itself (FireTower.Service.exe --install
+            / --uninstall) rather than WiX ServiceInstall table entries, which were not
+            being applied by WiX v5.0.2 even when the MSI reported success.
+            Deferred + Impersonate=no means these run elevated in the System context.
+        -->
+        <CustomAction Id="CA_RegisterService"
+                      FileRef="F_ServiceExe"
+                      ExeCommand="--install"
+                      Execute="deferred"
+                      Impersonate="no"
+                      Return="check"/>
+
+        <CustomAction Id="CA_UnregisterService"
+                      FileRef="F_ServiceExe"
+                      ExeCommand="--uninstall"
+                      Execute="deferred"
+                      Impersonate="no"
+                      Return="ignore"/>
+
+        <InstallExecuteSequence>
+            <Custom Action="CA_RegisterService" After="InstallFiles"
+                    Condition="NOT Installed AND NOT REMOVE"/>
+            <Custom Action="CA_UnregisterService" Before="RemoveFiles"
+                    Condition="REMOVE AND NOT UPGRADINGPRODUCTCODE"/>
+        </InstallExecuteSequence>
 
         <!-- ── Tray exe (all other app files come from CG_AppFiles) ─────── -->
 
