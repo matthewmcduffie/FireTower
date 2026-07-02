@@ -16,10 +16,10 @@ namespace FireTower.Tray.Services.Ipc;
 /// </summary>
 public sealed class FireTowerIpcClient : IFireTowerIpcClient, IFireTowerEventSink, IDisposable
 {
-    private static readonly TimeSpan[] BackoffDelays =
-    {
-        TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(10),
-    };
+    // Retry every 2 seconds — no backing off to 10+ seconds.
+    // After a fresh install the service may take 5-15 seconds to start and we
+    // want the tray to pick it up quickly the moment the pipe becomes available.
+    private static readonly TimeSpan ReconnectInterval = TimeSpan.FromSeconds(2);
 
     private readonly ILogger<FireTowerIpcClient> _logger;
     private readonly string _pipeName;
@@ -141,12 +141,11 @@ public sealed class FireTowerIpcClient : IFireTowerIpcClient, IFireTowerEventSin
             }
 
             State = ConnectionState.Reconnecting;
-            var delay = BackoffDelays[Math.Min(attempt, BackoffDelays.Length - 1)];
             attempt++;
 
             try
             {
-                await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+                await Task.Delay(ReconnectInterval, cancellationToken).ConfigureAwait(false);
             }
             catch (OperationCanceledException)
             {

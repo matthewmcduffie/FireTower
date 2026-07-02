@@ -76,24 +76,22 @@
                         <SolidColorBrush Color="#0B0E15" Opacity="0.9"/>
                     </Grid.Background>
                     <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="480">
-                        <TextBlock Text="Not Connected to FireTower Service"
+                        <TextBlock Text="Waiting for FireTower Service..."
                                    FontSize="20" FontWeight="SemiBold"
                                    Foreground="{StaticResource WarningBrush}"
                                    HorizontalAlignment="Center"/>
                         <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center"
                                    Foreground="{StaticResource OnSurfaceVariantBrush}"
-                                   Margin="0,12,0,0" FontSize="13">
-                            <Run Text="Start the FireTower Windows Service and the tray application will reconnect automatically."/>
-                        </TextBlock>
+                                   Margin="0,12,0,0" FontSize="13"
+                                   Text="The FireTower monitoring service is starting. This window will become active automatically once the service is ready."/>
                         <TextBlock Text="{Binding ConnectionState, StringFormat='Status: {0}'}"
                                    HorizontalAlignment="Center" Margin="0,8,0,0"
                                    Foreground="{StaticResource OnSurfaceVariantBrush}"
                                    Style="{StaticResource CaptionTextStyle}"/>
-                        <TextBlock Text="To start:  dotnet run --project src\FireTower.Service\FireTower.Service.csproj"
-                                   HorizontalAlignment="Center" Margin="0,8,0,0"
-                                   FontFamily="{StaticResource MonoFontFamily}"
-                                   FontSize="11"
-                                   Foreground="{StaticResource OnSurfaceVariantBrush}"/>
+                        <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center"
+                                   Margin="0,12,0,0" FontSize="11"
+                                   Foreground="{StaticResource OnSurfaceVariantBrush}"
+                                   Text="If this message persists, open Windows Services and verify that the FireTower service is running."/>
                     </StackPanel>
                 </Grid>
 
