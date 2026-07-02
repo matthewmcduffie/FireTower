@@ -104,17 +104,23 @@
 
         <!-- ── ProgramData directories ───────────────────────────────────── -->
 
+        <!--
+            The service runs as LocalSystem and calls EnsureDirectoriesExist() on startup,
+            which creates these folders with Windows-default ACLs (LocalSystem full control,
+            Authenticated Users read). No explicit Permission element is needed and setting
+            one here causes MsiLockPermissionsEx failures on some Windows configurations.
+        -->
         <Component Id="C_ConfigDir"  Directory="CONFIGDIR"  Guid="AA7B2C3D-E4F5-6A7B-8C9D-E0F1A2B3C4D5">
-            <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
+            <CreateFolder/>
         </Component>
         <Component Id="C_LogsDir"    Directory="LOGSDIR"    Guid="BB8C3D4E-F5A6-7B8C-9D0E-F1A2B3C4D5E6">
-            <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
+            <CreateFolder/>
         </Component>
         <Component Id="C_DataDir"    Directory="DATADIR"    Guid="CC9D4E5F-A6B7-8C9D-0E1F-A2B3C4D5E6F7">
-            <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
+            <CreateFolder/>
         </Component>
         <Component Id="C_BackupsDir" Directory="BACKUPSDIR" Guid="DD0E5F6A-B7C8-9D0E-1F2A-B3C4D5E6F7A8">
-            <CreateFolder><Permission GenericAll="yes" User="Everyone"/></CreateFolder>
+            <CreateFolder/>
         </Component>
 
         <!-- ── Start Menu shortcut ──────────────────────────────────────── -->
