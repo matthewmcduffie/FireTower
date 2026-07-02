@@ -40,8 +40,13 @@ Remove-Item -Force        $fragFile  -ErrorAction SilentlyContinue
 New-Item -ItemType Directory -Force $pubDir | Out-Null
 New-Item -ItemType Directory -Force $outDir | Out-Null
 
-# Use dotnet clean to properly reset MSBuild state for all projects.
-dotnet clean "$root\FireTower.sln" -c Release --nologo -q 2>$null
+# Clean only the two projects we publish, not the whole solution.
+# Cleaning the whole solution pulls in the Tests project which can fail and
+# produces hundreds of irrelevant warnings about deleting test DLLs.
+foreach ($proj in @("FireTower.Service", "FireTower.Tray")) {
+    $objRelease = "$root\src\$proj\obj\Release"
+    Remove-Item -Recurse -Force $objRelease -ErrorAction SilentlyContinue
+}
 
 # ── Publish (framework-dependent — required for Windows Service / LocalSystem) ──
 Write-Step "Publishing FireTower.Service..."
