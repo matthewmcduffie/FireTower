@@ -79,15 +79,16 @@
                 Account="LocalSystem"/>
 
             <!--
-                Wait="no": the installer signals the service to start and moves on
-                without blocking until the service reports "Running".  On a cold start
-                the service initialises VirtualBox and SQLite, which can exceed the
-                30-second Windows Service startup timeout on slower hardware.
+                The service is registered as Start="auto" so Windows starts it at every
+                boot automatically. We do NOT attempt to start it during installation
+                because the MSI's SCM context can trigger permission errors on some systems.
+                After installation the user can start it from Windows Services, or it will
+                start automatically on the next boot.  The tray app shows a clear
+                "Waiting for FireTower Service..." message until the connection is made.
             -->
             <ServiceControl
                 Id="FireTowerServiceControl"
                 Name="FireTower"
-                Start="install"
                 Stop="both"
                 Remove="uninstall"
                 Wait="no"/>

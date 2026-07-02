@@ -91,7 +91,7 @@
                         <TextBlock TextWrapping="Wrap" HorizontalAlignment="Center"
                                    Margin="0,12,0,0" FontSize="11"
                                    Foreground="{StaticResource OnSurfaceVariantBrush}"
-                                   Text="If this message persists, open Windows Services and verify that the FireTower service is running."/>
+                                   Text="After a first install, start the FireTower service from Windows Services, or reboot — it will start automatically on every subsequent boot."/>
                     </StackPanel>
                 </Grid>
 
