@@ -5,30 +5,35 @@ using FireTower.Service.Logging;
 using Serilog;
 using Serilog.Core;
 
-// Self-registration so the MSI installer can call us directly rather than
-// relying on WiX service table entries, which are unreliable in WiX v5.0.2.
 if (args.Contains("--install"))
 {
-    // Remove any existing registration (handles upgrades and "marked for deletion"
-    // scenarios where a previous install left a stale entry).
+    // Clean up any existing registration.
+    // sc.exe stop/delete used for removal (available on all Windows versions).
     Run("sc", "stop FireTower");
     Thread.Sleep(3000);
     Run("sc", "delete FireTower");
     Thread.Sleep(2000);
 
-    var exe = $"\"{Environment.ProcessPath}\"";
+    // Use PowerShell New-Service rather than sc.exe for creation because
+    // sc.exe strips the surrounding quotes from binPath and writes the bare
+    // path to the registry — which breaks service startup when the install
+    // directory contains spaces (C:\Program Files\...).
+    // New-Service writes the correct quoted ImagePath automatically.
+    var path = Environment.ProcessPath!;
+    var description = "Monitors and automatically recovers VirtualBox virtual machines.";
 
-    // Retry creation in case SCM hasn't finished processing the delete yet.
     for (int attempt = 0; attempt < 5; attempt++)
     {
-        int code = RunExitCode("sc", $"create FireTower binPath= {exe} start= auto obj= LocalSystem DisplayName= \"FireTower VM Watchdog\"");
+        int code = PS($"New-Service -Name FireTower -BinaryPathName '{path}' " +
+                      $"-StartupType Automatic " +
+                      $"-DisplayName 'FireTower VM Watchdog' " +
+                      $"-Description '{description}'");
         if (code == 0) break;
         Thread.Sleep(2000);
     }
 
-    Run("sc", "description FireTower \"Monitors and automatically recovers VirtualBox virtual machines.\"");
     Run("sc", "failure FireTower reset= 86400 actions= restart/5000/restart/10000/restart/30000");
-    Run("sc", "start FireTower");
+    PS("Start-Service -Name FireTower -ErrorAction SilentlyContinue");
     return;
 }
 
@@ -64,11 +69,21 @@ finally
     Log.CloseAndFlush();
 }
 
-static void Run(string exe, string args) => RunExitCode(exe, args);
-
-static int RunExitCode(string exe, string args)
+static void Run(string exe, string arguments)
 {
-    using var p = Process.Start(new ProcessStartInfo(exe, args)
+    using var p = Process.Start(new ProcessStartInfo(exe, arguments)
+    {
+        UseShellExecute = false,
+        CreateNoWindow  = true,
+    });
+    p?.WaitForExit();
+}
+
+static int PS(string command)
+{
+    using var p = Process.Start(new ProcessStartInfo(
+        "powershell.exe",
+        $"-NoProfile -NonInteractive -Command \"{command}\"")
     {
         UseShellExecute = false,
         CreateNoWindow  = true,
