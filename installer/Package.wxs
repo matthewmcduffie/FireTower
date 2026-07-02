@@ -90,8 +90,12 @@
                       Return="ignore"/>
 
         <InstallExecuteSequence>
+            <!-- Register after files land so the exe path is correct.
+                 Also runs on upgrades (Installed = previous version present). -->
             <Custom Action="CA_RegisterService" After="InstallFiles"
-                    Condition="NOT Installed AND NOT REMOVE"/>
+                    Condition="NOT REMOVE"/>
+            <!-- Unregister only on clean uninstall, not during upgrade
+                 (the new version's CA_RegisterService handles cleanup). -->
             <Custom Action="CA_UnregisterService" Before="RemoveFiles"
                     Condition="REMOVE AND NOT UPGRADINGPRODUCTCODE"/>
         </InstallExecuteSequence>
