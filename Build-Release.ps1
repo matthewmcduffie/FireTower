@@ -49,14 +49,14 @@ foreach ($proj in @("FireTower.Service", "FireTower.Tray")) {
 }
 
 # ── Publish (framework-dependent — required for Windows Service / LocalSystem) ──
-Write-Step "Publishing FireTower.Service (self-contained, win-x64)..."
+Write-Step "Publishing FireTower.Service..."
 dotnet publish "$root\src\FireTower.Service\FireTower.Service.csproj" `
-    -c Release -r win-x64 --self-contained -o $pubDir --nologo
+    -c Release -o $pubDir --nologo
 if ($LASTEXITCODE -ne 0) { Write-Fail "Service publish failed."; exit 1 }
 
-Write-Step "Publishing FireTower.Tray (self-contained, win-x64)..."
+Write-Step "Publishing FireTower.Tray..."
 dotnet publish "$root\src\FireTower.Tray\FireTower.Tray.csproj" `
-    -c Release -r win-x64 --self-contained -o $pubDir --nologo
+    -c Release -o $pubDir --nologo
 if ($LASTEXITCODE -ne 0) { Write-Fail "Tray publish failed."; exit 1 }
 
 $total = (Get-ChildItem $pubDir -File).Count
