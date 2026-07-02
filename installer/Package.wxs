@@ -26,15 +26,10 @@
             so the window appears on the desktop rather than the secure desktop.
         -->
         <!--
-            Wait 6 seconds after the install completes before launching the tray so the
-            Windows Service has time to start and open its Named Pipe. Without this delay
-            the tray opens before the service is ready and shows a "waiting" message.
+            Launch the tray app when the user clicks Finish. The tray shows a clear
+            "Waiting for FireTower Service..." message while it reconnects (every 2 seconds)
+            until the Windows Service is fully started — no artificial delay needed.
         -->
-        <CustomAction Id="CA_WaitForService"
-                      ExeCommand="cmd.exe /c timeout /t 6 /nobreak &gt; nul"
-                      Execute="immediate"
-                      Return="ignore"/>
-
         <CustomAction Id="CA_LaunchTray"
                       FileRef="F_TrayExe"
                       ExeCommand=""
@@ -42,9 +37,7 @@
                       Return="asyncNoWait"/>
 
         <InstallUISequence>
-            <Custom Action="CA_WaitForService" OnExit="success"
-                    Condition="NOT Installed AND NOT REMOVE"/>
-            <Custom Action="CA_LaunchTray" After="CA_WaitForService"
+            <Custom Action="CA_LaunchTray" OnExit="success"
                     Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed AND NOT REMOVE"/>
         </InstallUISequence>
 
