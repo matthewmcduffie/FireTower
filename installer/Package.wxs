@@ -70,9 +70,9 @@
         </Component>
 
         <!--
-            Service registration via the executable itself (FireTower.Service.exe --install
-            / --uninstall) rather than WiX ServiceInstall table entries, which were not
-            being applied by WiX v5.0.2 even when the MSI reported success.
+            Service registration via the executable itself using the install/uninstall
+            flags rather than WiX ServiceInstall table entries, which were not being
+            applied by WiX v5.0.2 even when the MSI reported success.
             Deferred + Impersonate=no means these run elevated in the System context.
         -->
         <CustomAction Id="CA_RegisterService"
