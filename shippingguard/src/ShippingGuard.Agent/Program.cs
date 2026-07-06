@@ -16,11 +16,17 @@ if (args.Contains("--install"))
     Run("sc", "stop ShippingGuard");
     Thread.Sleep(2000);
     Run("sc", "delete ShippingGuard");
-    Thread.Sleep(2000);
+
+    for (int i = 0; i < 20; i++)
+    {
+        if (RunExitCode("sc", "query ShippingGuard") != 0) break;
+        Thread.Sleep(1000);
+    }
+
     var path = Environment.ProcessPath!;
     for (int i = 0; i < 5; i++)
     {
-        int code = PS($"New-Service -Name ShippingGuard -BinaryPathName '{path}' " +
+        int code = PS($"New-Service -Name ShippingGuard -BinaryPathName '\"{path}\"' " +
                       "-StartupType Automatic " +
                       "-DisplayName 'ShippingGuard App Watchdog' " +
                       "-Description 'Monitors shipping applications and restarts them if they stop.'");
@@ -68,11 +74,14 @@ finally
     Log.CloseAndFlush();
 }
 
-static void Run(string exe, string arguments)
+static void Run(string exe, string arguments) => RunExitCode(exe, arguments);
+
+static int RunExitCode(string exe, string arguments)
 {
     using var p = Process.Start(new ProcessStartInfo(exe, arguments)
     { UseShellExecute = false, CreateNoWindow = true });
     p?.WaitForExit();
+    return p?.ExitCode ?? -1;
 }
 
 static int PS(string command)

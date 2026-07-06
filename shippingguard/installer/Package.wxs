@@ -64,6 +64,7 @@
 
         <Component Id="C_AgentExe" Directory="INSTALLFOLDER" Guid="*">
             <File Id="F_AgentExe" Name="ShippingGuard.Agent.exe" Source="$(AgentExe)" KeyPath="yes"/>
+            <ServiceControl Id="SC_StopShippingGuard" Name="ShippingGuard" Stop="both" Wait="yes"/>
         </Component>
 
         <Component Id="C_TrayExe" Directory="INSTALLFOLDER" Guid="*">

@@ -50,7 +50,10 @@ public sealed class MonitorWorker : BackgroundService
             foreach (var key in _statuses.Keys.Except(activeIds).ToList())
                 _statuses.TryRemove(key, out _);
 
-            try { await Task.Delay(TimeSpan.FromSeconds(Math.Max(5, profiles.Min(p => p.CheckIntervalSeconds))), stopping); }
+            var interval = profiles.Count > 0
+                ? TimeSpan.FromSeconds(Math.Max(5, profiles.Min(p => p.CheckIntervalSeconds)))
+                : TimeSpan.FromSeconds(10);
+            try { await Task.Delay(interval, stopping); }
             catch (OperationCanceledException) { break; }
         }
     }
