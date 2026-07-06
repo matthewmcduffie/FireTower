@@ -7,24 +7,34 @@ using Serilog.Core;
 
 if (args.Contains("--install"))
 {
-    // Clean up any existing registration.
-    // sc.exe stop/delete used for removal (available on all Windows versions).
+    // Stop and remove any existing registration.
     Run("sc", "stop FireTower");
-    Thread.Sleep(3000);
-    Run("sc", "delete FireTower");
     Thread.Sleep(2000);
+    Run("sc", "delete FireTower");
 
-    // Use PowerShell New-Service rather than sc.exe for creation because
-    // sc.exe strips the surrounding quotes from binPath and writes the bare
-    // path to the registry — which breaks service startup when the install
-    // directory contains spaces (C:\Program Files\...).
-    // New-Service writes the correct quoted ImagePath automatically.
+    // Wait until the SCM has fully released the old registration before trying
+    // to create a new one. A fixed sleep is not reliable — on a slow machine or
+    // after an upgrade the service can remain "marked for deletion" for several
+    // seconds after sc delete returns. Poll instead.
+    for (int i = 0; i < 20; i++)
+    {
+        if (RunExitCode("sc", "query FireTower") != 0) break;
+        Thread.Sleep(1000);
+    }
+
+    // Use PowerShell New-Service rather than sc.exe because sc.exe strips
+    // surrounding quotes from binPath — breaking startup when the path contains
+    // spaces (e.g. C:\Program Files\...).
     var path = Environment.ProcessPath!;
     var description = "Monitors and automatically recovers VirtualBox virtual machines.";
 
+    // Wrap the path in double-quotes so the ImagePath registry value is stored as
+    // "C:\Program Files\FireTower\FireTower.Service.exe" — required when the path
+    // contains spaces, otherwise SCM parses the command line at the first space and
+    // tries to launch "C:\Program" which does not exist.
     for (int attempt = 0; attempt < 5; attempt++)
     {
-        int code = PS($"New-Service -Name FireTower -BinaryPathName '{path}' " +
+        int code = PS($"New-Service -Name FireTower -BinaryPathName '\"{path}\"' " +
                       $"-StartupType Automatic " +
                       $"-DisplayName 'FireTower VM Watchdog' " +
                       $"-Description '{description}'");
@@ -69,7 +79,9 @@ finally
     Log.CloseAndFlush();
 }
 
-static void Run(string exe, string arguments)
+static void Run(string exe, string arguments) => RunExitCode(exe, arguments);
+
+static int RunExitCode(string exe, string arguments)
 {
     using var p = Process.Start(new ProcessStartInfo(exe, arguments)
     {
@@ -77,6 +89,7 @@ static void Run(string exe, string arguments)
         CreateNoWindow  = true,
     });
     p?.WaitForExit();
+    return p?.ExitCode ?? -1;
 }
 
 static int PS(string command)

@@ -64,6 +64,12 @@ public sealed class VirtualBoxProvider : IVmProvider
         }
 
         _detectedVersion = result.StandardOutput.Trim();
+
+        // Probe user profile directories to find the right VBOX_USER_HOME. This runs
+        // actual VBoxManage commands rather than just checking for file existence, so
+        // it works even when VMs are in non-default or custom locations.
+        await _commandRunner.CalibrateVBoxUserHomeAsync(OperationTimeout, cancellationToken).ConfigureAwait(false);
+
         _logger.LogInformation("VirtualBox provider initialized, detected version {Version}", _detectedVersion);
     }
 

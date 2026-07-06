@@ -1,6 +1,8 @@
 using System.Diagnostics;
+using System.Runtime.Versioning;
 using System.Text;
 using FireTower.Core.Interfaces;
+using FireTower.Providers.VirtualBox.Platform;
 using FireTower.Providers.VirtualBox.Services;
 using FireTower.Shared.Exceptions;
 using Microsoft.Extensions.Logging;
@@ -8,11 +10,10 @@ using Microsoft.Extensions.Logging;
 namespace FireTower.Providers.VirtualBox.Commands;
 
 /// <summary>
-/// Default <see cref="IVBoxCommandRunner"/> implementation: launches VBoxManage as a
-/// child process, captures stdout/stderr/exit code, and enforces the requested timeout
-/// by killing the process tree rather than waiting indefinitely. The configured executable
-/// path is read from configuration on every call rather than captured at construction time,
-/// since the provider can be constructed before configuration has finished loading.
+/// Runs VBoxManage and captures stdout/stderr/exit code.
+/// When the service is running as LocalSystem, VBoxManage is launched in the active
+/// user's session via CreateProcessAsUser so it can reach VBoxSVC (which manages
+/// runtime VM state and runs in the user's session, not Session 0).
 /// </summary>
 public sealed class VBoxCommandRunner : IVBoxCommandRunner
 {
@@ -27,78 +28,35 @@ public sealed class VBoxCommandRunner : IVBoxCommandRunner
         _logger = logger;
     }
 
-    public async Task<VBoxCommandResult> RunAsync(IReadOnlyList<string> arguments, TimeSpan timeout, CancellationToken cancellationToken)
+    public Task<VBoxCommandResult> RunAsync(IReadOnlyList<string> arguments, TimeSpan timeout, CancellationToken cancellationToken)
     {
-        var configuredPath = _configurationManager.Current.Providers
-            .FirstOrDefault(p => string.Equals(p.ProviderId, VirtualBoxProvider.Id, StringComparison.OrdinalIgnoreCase))
-            ?.ExecutablePath;
+        var providerOptions = _configurationManager.Current.Providers
+            .FirstOrDefault(p => string.Equals(p.ProviderId, VirtualBoxProvider.Id, StringComparison.OrdinalIgnoreCase));
 
-        var executablePath = _locator.Locate(configuredPath);
+        var executablePath = _locator.Locate(providerOptions?.ExecutablePath);
 
-        var startInfo = new ProcessStartInfo(executablePath)
-        {
-            RedirectStandardOutput = true,
-            RedirectStandardError = true,
-            UseShellExecute = false,
-            CreateNoWindow = true,
-        };
-
-        foreach (var argument in arguments)
-        {
-            startInfo.ArgumentList.Add(argument);
-        }
-
-        using var process = new Process { StartInfo = startInfo };
         var stopwatch = Stopwatch.StartNew();
-        var stdout = new StringBuilder();
-        var stderr = new StringBuilder();
 
-        process.OutputDataReceived += (_, e) => { if (e.Data is not null) stdout.AppendLine(e.Data); };
-        process.ErrorDataReceived += (_, e) => { if (e.Data is not null) stderr.AppendLine(e.Data); };
-
-        process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-
-        using var timeoutSource = new CancellationTokenSource(timeout);
-        using var linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutSource.Token);
-
-        try
-        {
-            await process.WaitForExitAsync(linked.Token).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException)
-        {
-            TryKill(process);
-            if (timeoutSource.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
-            {
-                throw new ProviderException("virtualbox", $"VBoxManage {string.Join(' ', arguments)} timed out after {timeout}.");
-            }
-
-            throw;
-        }
+        // Run VBoxManage in the active user's session so it can reach VBoxSVC.
+        // VBoxSVC manages runtime VM state and lives in the user's interactive session.
+        // A service running in Session 0 cannot reach it via COM directly.
+        var (exitCode, stdout, stderr) = UserSessionRunner.Run(executablePath, arguments, timeout);
 
         stopwatch.Stop();
 
-        var result = new VBoxCommandResult(process.ExitCode, stdout.ToString(), stderr.ToString(), stopwatch.Elapsed);
-        _logger.LogDebug("VBoxManage {Arguments} completed in {Duration}ms with exit code {ExitCode}",
+        var result = new VBoxCommandResult(exitCode, stdout, stderr, stopwatch.Elapsed);
+        _logger.LogDebug("VBoxManage {Arguments} completed in {Duration}ms exit {ExitCode}",
             string.Join(' ', arguments), result.Duration.TotalMilliseconds, result.ExitCode);
 
-        return result;
+        return Task.FromResult(result);
     }
+
+    public Task CalibrateVBoxUserHomeAsync(TimeSpan timeout, CancellationToken cancellationToken)
+        => Task.CompletedTask; // No longer needed — VBoxManage runs as the user directly.
 
     private void TryKill(Process process)
     {
-        try
-        {
-            if (!process.HasExited)
-            {
-                process.Kill(entireProcessTree: true);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to terminate timed-out VBoxManage process");
-        }
+        try { if (!process.HasExited) process.Kill(entireProcessTree: true); }
+        catch (Exception ex) { _logger.LogWarning(ex, "Failed to terminate VBoxManage process"); }
     }
 }

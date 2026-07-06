@@ -20,6 +20,16 @@ public static class PipeSecurityFactory
     {
         var security = new PipeSecurity();
 
+        // LocalSystem (S-1-5-18) is the service account. It must have FullControl so it
+        // can create additional pipe server instances after the first one is connected.
+        // LocalSystem is NOT a member of BuiltinAdministrators for DACL checks, so it
+        // needs an explicit entry — otherwise it only gets ReadWrite via AuthenticatedUsers,
+        // which excludes FILE_CREATE_PIPE_INSTANCE, and every second+ accept attempt fails.
+        security.AddAccessRule(new PipeAccessRule(
+            new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+            PipeAccessRights.FullControl,
+            AccessControlType.Allow));
+
         security.AddAccessRule(new PipeAccessRule(
             new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
             PipeAccessRights.FullControl,

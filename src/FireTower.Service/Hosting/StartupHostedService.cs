@@ -36,9 +36,36 @@ public sealed class StartupHostedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await _configurationManager.LoadAsync(cancellationToken).ConfigureAwait(false);
-        _databaseMigrator.Migrate();
-        await _vmSynchronizer.SynchronizeAsync(_configurationManager.Current, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await _configurationManager.LoadAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // A validation or parse error in the config files must not crash the service.
+            // Log the problem and continue — the service starts with the built-in defaults
+            // so the tray can still connect, show the error, and let the user fix the config.
+            _logger.LogError(ex, "Configuration could not be loaded ({Message}); starting with defaults", ex.Message);
+        }
+
+        try
+        {
+            _databaseMigrator.Migrate();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Database migration failed ({Message}); monitoring history will not be available", ex.Message);
+        }
+
+        try
+        {
+            await _vmSynchronizer.SynchronizeAsync(_configurationManager.Current, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "VM synchronization failed ({Message})", ex.Message);
+        }
+
         await _providerManager.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
         _configurationManager.ConfigurationChanged += OnConfigurationChanged;

@@ -23,5 +23,14 @@ public sealed class ProviderOptions
     /// </summary>
     public string VmStartType { get; set; } = "gui";
 
+    /// <summary>
+    /// Path to the user's .VirtualBox configuration directory (the folder containing
+    /// VirtualBox.xml). Set this to your user profile's .VirtualBox folder so the
+    /// FireTower service — which runs as LocalSystem — can see your VMs.
+    /// Example: C:\Users\YourName\.VirtualBox
+    /// When left empty, FireTower auto-detects the folder by scanning user profiles.
+    /// </summary>
+    public string? VBoxUserHome { get; set; }
+
     public Dictionary<string, string> ExtraSettings { get; set; } = new();
 }

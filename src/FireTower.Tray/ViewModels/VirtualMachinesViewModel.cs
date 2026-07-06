@@ -1,6 +1,8 @@
 using System.Collections.ObjectModel;
+using System.Text.Json;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using FireTower.Core.Configuration;
 using FireTower.Shared.DTOs;
 using FireTower.Shared.Enums;
 using FireTower.Tray.Services;
@@ -27,20 +29,16 @@ public sealed partial class VirtualMachinesViewModel : ViewModelBase
         _dispatcher = dispatcher;
         _ipcClient.VmStatusChanged += OnVmStatusChanged;
         _ = RefreshCommand.ExecuteAsync(null);
-        _ = AutoRefreshAsync();
+        _ = PeriodicRefreshAsync();
     }
 
-    // Poll the service every 10 seconds as a fallback so the VM list is never more
-    // than 10 s stale even if an IPC push event is lost or the connection drops briefly.
-    private async Task AutoRefreshAsync()
+    private async Task PeriodicRefreshAsync()
     {
-        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(10));
+        using var timer = new PeriodicTimer(TimeSpan.FromSeconds(15));
         while (await timer.WaitForNextTickAsync())
         {
             if (!RefreshCommand.IsRunning)
-            {
                 await RefreshCommand.ExecuteAsync(null);
-            }
         }
     }
 
@@ -63,15 +61,35 @@ public sealed partial class VirtualMachinesViewModel : ViewModelBase
                 return;
             }
 
-            VirtualMachines.Clear();
-            foreach (var vm in result.Payload ?? Array.Empty<VirtualMachineDto>())
+            var selectedId = SelectedVirtualMachine?.Id;
+            var incoming = result.Payload ?? Array.Empty<VirtualMachineDto>();
+            var incomingIds = incoming.Select(v => v.Id).ToHashSet();
+
+            // Remove VMs that no longer exist in config.
+            for (int i = VirtualMachines.Count - 1; i >= 0; i--)
+                if (!incomingIds.Contains(VirtualMachines[i].Id))
+                    VirtualMachines.RemoveAt(i);
+
+            // Update existing items in place; add new ones. Never Clear() — that drops selection.
+            foreach (var vm in incoming)
             {
-                VirtualMachines.Add(vm);
+                var idx = -1;
+                for (int i = 0; i < VirtualMachines.Count; i++)
+                    if (VirtualMachines[i].Id == vm.Id) { idx = i; break; }
+                if (idx >= 0)
+                    VirtualMachines[idx] = vm;
+                else
+                    VirtualMachines.Add(vm);
             }
+
+            // Replacing a record object breaks the DataGrid's selected-item reference.
+            // Restore the selection by ID after any update.
+            if (selectedId.HasValue)
+                SelectedVirtualMachine = VirtualMachines.FirstOrDefault(v => v.Id == selectedId.Value);
 
             if (VirtualMachines.Count == 0)
             {
-                StatusMessage = "No virtual machines are configured for monitoring yet. Use Discovery to find VMs, then add them to virtual-machines.json.";
+                StatusMessage = "No virtual machines configured. Go to Discovery to add one.";
             }
             else
             {
@@ -111,6 +129,56 @@ public sealed partial class VirtualMachinesViewModel : ViewModelBase
     [RelayCommand]
     private Task DisableMonitoringAsync(VirtualMachineDto vm) =>
         RunVmOperationAsync(vm.Name, "disable monitoring for", () => _ipcClient.Service.SetMonitoringEnabledAsync(vm.Id, false, CancellationToken.None));
+
+    [RelayCommand]
+    private async Task RemoveAsync(VirtualMachineDto vm)
+    {
+        if (_ipcClient.State != ConnectionState.Connected)
+        {
+            ShowError("Not connected to the FireTower service.");
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var configResult = await _ipcClient.Service.GetConfigurationAsync(CancellationToken.None);
+            if (!configResult.Success)
+            {
+                ShowError($"Could not read configuration: {configResult.ErrorMessage}");
+                return;
+            }
+
+            var configuration = JsonSerializer.Deserialize<FireTowerConfiguration>(
+                configResult.Payload!, ConfigurationSerialization.Options)
+                ?? new FireTowerConfiguration();
+
+            var entry = configuration.VirtualMachines.FirstOrDefault(v =>
+                string.Equals(v.ExternalId, vm.ExternalId, StringComparison.OrdinalIgnoreCase) &&
+                string.Equals(v.ProviderId, vm.ProviderId, StringComparison.OrdinalIgnoreCase));
+
+            if (entry is null) { ShowError($"\"{vm.Name}\" was not found in configuration."); return; }
+
+            configuration.VirtualMachines.Remove(entry);
+
+            var json = JsonSerializer.Serialize(configuration, ConfigurationSerialization.Options);
+            var saveResult = await _ipcClient.Service.SaveConfigurationAsync(json, CancellationToken.None);
+            if (!saveResult.Success) { ShowError($"Could not save: {saveResult.ErrorMessage}"); return; }
+
+            await _ipcClient.Service.ReloadConfigurationAsync(CancellationToken.None);
+            SelectedVirtualMachine = null;
+            ShowStatus($"Removed \"{vm.Name}\" from monitoring.");
+        }
+        catch (Exception ex)
+        {
+            ShowError($"Could not remove \"{vm.Name}\": {ex.Message}");
+        }
+        finally
+        {
+            IsBusy = false;
+            await RefreshAsync();
+        }
+    }
 
     private async Task RunVmOperationAsync(
         string vmName,

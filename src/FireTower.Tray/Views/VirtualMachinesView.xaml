@@ -87,6 +87,11 @@
                             Margin="4,0,0,0"
                             Command="{Binding DisableMonitoringCommand}"
                             CommandParameter="{Binding SelectedVirtualMachine}"/>
+                    <Button Content="Remove"
+                            Margin="16,0,0,0"
+                            Command="{Binding RemoveCommand}"
+                            CommandParameter="{Binding SelectedVirtualMachine}"
+                            ToolTip="Remove this VM from monitoring"/>
                 </StackPanel>
             </Grid>
         </Border>

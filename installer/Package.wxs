@@ -67,6 +67,13 @@
                   Name="FireTower.Service.exe"
                   Source="$(ServiceExe)"
                   KeyPath="yes"/>
+            <!-- Stop the running service before InstallFiles replaces the exe.
+                 Without this, the exe is locked during upgrade and the
+                 CA_RegisterService step that follows cannot re-register it cleanly. -->
+            <ServiceControl Id="SC_StopFireTower"
+                            Name="FireTower"
+                            Stop="both"
+                            Wait="yes"/>
         </Component>
 
         <!--

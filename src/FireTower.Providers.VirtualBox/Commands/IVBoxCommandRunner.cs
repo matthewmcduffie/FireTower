@@ -8,4 +8,10 @@ namespace FireTower.Providers.VirtualBox.Commands;
 public interface IVBoxCommandRunner
 {
     Task<VBoxCommandResult> RunAsync(IReadOnlyList<string> arguments, TimeSpan timeout, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Probes user profile directories to find the one that makes VBoxManage work.
+    /// Called once during provider initialization; result is cached for all subsequent calls.
+    /// </summary>
+    Task CalibrateVBoxUserHomeAsync(TimeSpan timeout, CancellationToken cancellationToken);
 }

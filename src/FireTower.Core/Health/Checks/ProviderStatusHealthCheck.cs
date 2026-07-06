@@ -49,8 +49,11 @@ public sealed class ProviderStatusHealthCheck : IHealthCheck
         }
         catch (Exception ex)
         {
+            // Provider threw — communication error, not a VM state we can act on.
+            // Warning keeps the failure counter from incrementing so recovery doesn't fire.
             return HealthCheckResultFactory.Create(
-                definition.Id, HealthCheckOutcome.Failed, stopwatch.Elapsed, ex.Message);
+                definition.Id, HealthCheckOutcome.Warning, stopwatch.Elapsed,
+                $"Provider error: {ex.Message}");
         }
 
         // Map VirtualBox power states to health outcomes.
@@ -67,6 +70,12 @@ public sealed class ProviderStatusHealthCheck : IHealthCheck
             VmPowerState.Starting   => HealthCheckOutcome.Healthy,
             VmPowerState.Restoring  => HealthCheckOutcome.Healthy,
             VmPowerState.Stopping   => HealthCheckOutcome.Warning,
+            // Unknown means the provider command failed entirely (e.g. VBoxManage could
+            // not find the VM because VBOX_USER_HOME is not configured). This is a
+            // provider configuration error, NOT evidence the VM is stopped.
+            // Return Warning so the failure counter does not increment and recovery
+            // does not fire — the VM may be running fine, we simply cannot see it.
+            VmPowerState.Unknown    => HealthCheckOutcome.Warning,
             _                       => HealthCheckOutcome.Failed,
         };
 
