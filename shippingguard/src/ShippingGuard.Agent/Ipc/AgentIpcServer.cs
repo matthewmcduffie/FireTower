@@ -1,4 +1,7 @@
 using System.IO.Pipes;
+using System.Runtime.Versioning;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
@@ -33,22 +36,46 @@ public sealed class AgentIpcServer : IDisposable
         _loop = AcceptLoopAsync(_cts.Token);
     }
 
+    [SupportedOSPlatform("windows")]
     private async Task AcceptLoopAsync(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
             try
             {
-                var pipe = new NamedPipeServerStream(_pipeName, PipeDirection.InOut,
-                    NamedPipeServerStream.MaxAllowedServerInstances, PipeTransmissionMode.Byte,
-                    PipeOptions.Asynchronous);
-
+                var pipe = CreateServerStream();
                 await pipe.WaitForConnectionAsync(ct);
                 _ = HandleClientAsync(pipe, ct);
             }
             catch (OperationCanceledException) { break; }
             catch (Exception ex) { _logger.LogError(ex, "IPC accept error."); await Task.Delay(2000, ct); }
         }
+    }
+
+    [SupportedOSPlatform("windows")]
+    private NamedPipeServerStream CreateServerStream()
+    {
+        var security = new PipeSecurity();
+        // LocalSystem (the service account) needs FullControl including CreatePipeInstance
+        // so it can create additional server instances after the first client connects.
+        security.AddAccessRule(new PipeAccessRule(
+            new SecurityIdentifier(WellKnownSidType.LocalSystemSid, null),
+            PipeAccessRights.FullControl, AccessControlType.Allow));
+        security.AddAccessRule(new PipeAccessRule(
+            new SecurityIdentifier(WellKnownSidType.BuiltinAdministratorsSid, null),
+            PipeAccessRights.FullControl, AccessControlType.Allow));
+        // Authenticated users (the tray app running as the logged-in user) need ReadWrite.
+        security.AddAccessRule(new PipeAccessRule(
+            new SecurityIdentifier(WellKnownSidType.AuthenticatedUserSid, null),
+            PipeAccessRights.ReadWrite, AccessControlType.Allow));
+
+        return NamedPipeServerStreamAcl.Create(
+            _pipeName, PipeDirection.InOut,
+            NamedPipeServerStream.MaxAllowedServerInstances,
+            PipeTransmissionMode.Byte,
+            PipeOptions.Asynchronous,
+            inBufferSize: 0, outBufferSize: 0,
+            security);
     }
 
     private async Task HandleClientAsync(NamedPipeServerStream pipe, CancellationToken ct)
