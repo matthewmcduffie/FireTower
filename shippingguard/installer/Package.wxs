@@ -1,0 +1,102 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+     xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+
+    <Package Name="ShippingGuard"
+             Manufacturer="Matthew McDuffie"
+             Version="$(ProductVersion)"
+             UpgradeCode="A1B2C3D4-E5F6-7A8B-9C0D-E1F2A3B4C5D6"
+             ProductCode="*"
+             Language="1033"
+             Scope="perMachine">
+
+        <MajorUpgrade DowngradeErrorMessage="A newer version of ShippingGuard is already installed."/>
+        <MediaTemplate EmbedCab="yes"/>
+
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOX"     Value="1"/>
+        <Property Id="WIXUI_EXITDIALOGOPTIONALCHECKBOXTEXT" Value="Launch ShippingGuard"/>
+        <ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER"/>
+
+        <CustomAction Id="CA_RegisterAgent"
+                      FileRef="F_AgentExe"
+                      ExeCommand="--install"
+                      Execute="deferred"
+                      Impersonate="no"
+                      Return="check"/>
+
+        <CustomAction Id="CA_UnregisterAgent"
+                      FileRef="F_AgentExe"
+                      ExeCommand="--uninstall"
+                      Execute="deferred"
+                      Impersonate="no"
+                      Return="ignore"/>
+
+        <CustomAction Id="CA_LaunchTray"
+                      FileRef="F_TrayExe"
+                      ExeCommand=""
+                      Execute="immediate"
+                      Return="asyncNoWait"/>
+
+        <InstallExecuteSequence>
+            <Custom Action="CA_RegisterAgent" After="InstallFiles" Condition="NOT REMOVE"/>
+            <Custom Action="CA_UnregisterAgent" Before="RemoveFiles"
+                    Condition="REMOVE AND NOT UPGRADINGPRODUCTCODE"/>
+        </InstallExecuteSequence>
+
+        <InstallUISequence>
+            <Custom Action="CA_LaunchTray" OnExit="success"
+                    Condition="WIXUI_EXITDIALOGOPTIONALCHECKBOX = 1 AND NOT Installed AND NOT REMOVE"/>
+        </InstallUISequence>
+
+        <StandardDirectory Id="ProgramFiles64Folder">
+            <Directory Id="INSTALLFOLDER" Name="ShippingGuard"/>
+        </StandardDirectory>
+
+        <StandardDirectory Id="CommonAppDataFolder">
+            <Directory Id="SGDATAROOT" Name="ShippingGuard">
+                <Directory Id="SGPROFILES" Name="profiles"/>
+                <Directory Id="SGLOGS"     Name="logs"/>
+            </Directory>
+        </StandardDirectory>
+
+        <StandardDirectory Id="ProgramMenuFolder">
+            <Directory Id="STARTMENU" Name="ShippingGuard"/>
+        </StandardDirectory>
+
+        <Component Id="C_AgentExe" Directory="INSTALLFOLDER" Guid="*">
+            <File Id="F_AgentExe" Name="ShippingGuard.Agent.exe" Source="$(AgentExe)" KeyPath="yes"/>
+        </Component>
+
+        <Component Id="C_TrayExe" Directory="INSTALLFOLDER" Guid="*">
+            <File Id="F_TrayExe" Name="ShippingGuard.Tray.exe" Source="$(TrayExe)" KeyPath="yes"/>
+        </Component>
+
+        <Component Id="C_ProfilesDir" Directory="SGPROFILES"
+                   Guid="B1C2D3E4-F5A6-7B8C-9D0E-F1A2B3C4D5E6">
+            <CreateFolder/>
+        </Component>
+
+        <Component Id="C_LogsDir" Directory="SGLOGS"
+                   Guid="C2D3E4F5-A6B7-8C9D-0E1F-A2B3C4D5E6F7">
+            <CreateFolder/>
+        </Component>
+
+        <Component Id="C_StartMenu" Directory="STARTMENU" Guid="*">
+            <Shortcut Id="S_Tray" Name="ShippingGuard"
+                      Target="[INSTALLFOLDER]ShippingGuard.Tray.exe"
+                      WorkingDirectory="INSTALLFOLDER"/>
+            <RemoveFolder Id="RF_StartMenu" Directory="STARTMENU" On="uninstall"/>
+            <RegistryValue Root="HKCU" Key="Software\ShippingGuard"
+                           Name="Installed" Type="integer" Value="1" KeyPath="yes"/>
+        </Component>
+
+        <Feature Id="F_Complete" Title="ShippingGuard" Level="1">
+            <ComponentRef Id="C_AgentExe"/>
+            <ComponentRef Id="C_TrayExe"/>
+            <ComponentGroupRef Id="CG_AppFiles"/>
+            <ComponentRef Id="C_ProfilesDir"/>
+            <ComponentRef Id="C_LogsDir"/>
+            <ComponentRef Id="C_StartMenu"/>
+        </Feature>
+
+    </Package>
+</Wix>

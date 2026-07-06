@@ -1,0 +1,34 @@
+{
+  "id": "fedex-ship-manager",
+  "displayName": "FedEx Ship Manager",
+  "processName": "FedEx Ship Manager",
+  "launchCommand": "\"C:\\FedEx\\Ship Manager\\FxShip.exe\"",
+  "startupDelaySeconds": 8,
+  "checkIntervalSeconds": 10,
+  "restartIfMissing": true,
+  "killIfHung": true,
+  "hungTimeoutSeconds": 45,
+  "maxRestartAttempts": 5,
+  "restartCooldownSeconds": 60,
+  "enabled": false,
+  "dialogRules": [
+    {
+      "name": "Connection Error - Retry",
+      "titleContains": "Connection",
+      "buttonText": "Retry",
+      "action": "Click",
+      "enabled": true,
+      "maintenanceModeOnly": false,
+      "notes": "Retries server connection on startup failure."
+    },
+    {
+      "name": "Update Prompt - Skip",
+      "titleContains": "Update",
+      "buttonText": "Skip",
+      "action": "Click",
+      "enabled": true,
+      "maintenanceModeOnly": false,
+      "notes": "Skips update prompts during normal operation."
+    }
+  ]
+}

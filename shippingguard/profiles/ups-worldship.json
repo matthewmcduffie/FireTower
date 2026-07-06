@@ -1,0 +1,54 @@
+{
+  "id": "ups-worldship",
+  "displayName": "UPS WorldShip",
+  "processName": "WorldShip",
+  "launchCommand": "\"C:\\UPS\\WSTD\\WorldShip.exe\"",
+  "startupDelaySeconds": 5,
+  "checkIntervalSeconds": 10,
+  "restartIfMissing": true,
+  "killIfHung": true,
+  "hungTimeoutSeconds": 30,
+  "maxRestartAttempts": 5,
+  "restartCooldownSeconds": 60,
+  "enabled": true,
+  "dialogRules": [
+    {
+      "name": "Database Check - Approve",
+      "titleContains": "Database",
+      "textContains": "check",
+      "buttonText": "Yes",
+      "action": "Click",
+      "enabled": true,
+      "maintenanceModeOnly": false,
+      "notes": "Approves the startup database integrity check."
+    },
+    {
+      "name": "Update Available - Defer",
+      "titleContains": "Update",
+      "buttonText": "Later",
+      "action": "Click",
+      "enabled": true,
+      "maintenanceModeOnly": false,
+      "notes": "Defers the update prompt during normal operation."
+    },
+    {
+      "name": "Update Available - Allow (Maintenance)",
+      "titleContains": "Update",
+      "buttonText": "Install",
+      "action": "Click",
+      "enabled": true,
+      "maintenanceModeOnly": true,
+      "notes": "Allows updates only when maintenance mode is on."
+    },
+    {
+      "name": "Startup Confirmation",
+      "titleContains": "WorldShip",
+      "textContains": "Continue",
+      "buttonText": "OK",
+      "action": "Click",
+      "enabled": true,
+      "maintenanceModeOnly": false,
+      "notes": "Clicks through any startup confirmation dialogs."
+    }
+  ]
+}

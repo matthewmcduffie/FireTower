@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{6961A8E1-224C-47D3-8CCD-CD821E4FAD2F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShippingGuard.Core", "src\ShippingGuard.Core\ShippingGuard.Core.csproj", "{A069E00F-846A-47EE-9E6D-F804DFA60ECA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShippingGuard.Agent", "src\ShippingGuard.Agent\ShippingGuard.Agent.csproj", "{8FD91489-8F2F-4E47-BE01-51A4D1DDB054}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShippingGuard.Tray", "src\ShippingGuard.Tray\ShippingGuard.Tray.csproj", "{BB7ACFF0-6890-4AF0-8DC1-3D86D93643FD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShippingGuard.UiAutomation", "src\ShippingGuard.UiAutomation\ShippingGuard.UiAutomation.csproj", "{6B8EACE5-D82C-47E5-BAA5-4713229BABAA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ShippingGuard.Notifications", "src\ShippingGuard.Notifications\ShippingGuard.Notifications.csproj", "{3FABC8F7-496F-4220-B71E-66BCD7E70152}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A069E00F-846A-47EE-9E6D-F804DFA60ECA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A069E00F-846A-47EE-9E6D-F804DFA60ECA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A069E00F-846A-47EE-9E6D-F804DFA60ECA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A069E00F-846A-47EE-9E6D-F804DFA60ECA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FD91489-8F2F-4E47-BE01-51A4D1DDB054}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FD91489-8F2F-4E47-BE01-51A4D1DDB054}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FD91489-8F2F-4E47-BE01-51A4D1DDB054}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FD91489-8F2F-4E47-BE01-51A4D1DDB054}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB7ACFF0-6890-4AF0-8DC1-3D86D93643FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB7ACFF0-6890-4AF0-8DC1-3D86D93643FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB7ACFF0-6890-4AF0-8DC1-3D86D93643FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB7ACFF0-6890-4AF0-8DC1-3D86D93643FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B8EACE5-D82C-47E5-BAA5-4713229BABAA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B8EACE5-D82C-47E5-BAA5-4713229BABAA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B8EACE5-D82C-47E5-BAA5-4713229BABAA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B8EACE5-D82C-47E5-BAA5-4713229BABAA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3FABC8F7-496F-4220-B71E-66BCD7E70152}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3FABC8F7-496F-4220-B71E-66BCD7E70152}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3FABC8F7-496F-4220-B71E-66BCD7E70152}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3FABC8F7-496F-4220-B71E-66BCD7E70152}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A069E00F-846A-47EE-9E6D-F804DFA60ECA} = {6961A8E1-224C-47D3-8CCD-CD821E4FAD2F}
+		{8FD91489-8F2F-4E47-BE01-51A4D1DDB054} = {6961A8E1-224C-47D3-8CCD-CD821E4FAD2F}
+		{BB7ACFF0-6890-4AF0-8DC1-3D86D93643FD} = {6961A8E1-224C-47D3-8CCD-CD821E4FAD2F}
+		{6B8EACE5-D82C-47E5-BAA5-4713229BABAA} = {6961A8E1-224C-47D3-8CCD-CD821E4FAD2F}
+		{3FABC8F7-496F-4220-B71E-66BCD7E70152} = {6961A8E1-224C-47D3-8CCD-CD821E4FAD2F}
+	EndGlobalSection
+EndGlobal

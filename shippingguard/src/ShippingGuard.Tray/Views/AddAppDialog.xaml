@@ -1,0 +1,60 @@
+<Window x:Class="ShippingGuard.Tray.Views.AddAppDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Add Application" Height="420" Width="520"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize"
+        Background="{StaticResource SurfaceBrush}">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" VerticalAlignment="Top">
+
+            <TextBlock Text="Display Name" Style="{StaticResource CaptionStyle}" Margin="0,0,0,4"/>
+            <TextBox Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,14"/>
+
+            <TextBlock Text="Process Name  (without .exe)" Style="{StaticResource CaptionStyle}" Margin="0,0,0,4"/>
+            <TextBox Text="{Binding ProcessName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4"/>
+            <TextBlock Text="e.g.  WorldShip  or  FedEx Ship Manager" Style="{StaticResource CaptionStyle}"
+                       Margin="0,0,0,14"/>
+
+            <TextBlock Text="Launch Command" Style="{StaticResource CaptionStyle}" Margin="0,0,0,4"/>
+            <DockPanel Margin="0,0,0,4">
+                <Button DockPanel.Dock="Right" Content="Browse…" Margin="6,0,0,0"
+                        Command="{Binding BrowseForExeCommand}"/>
+                <TextBox Text="{Binding LaunchCommand, UpdateSourceTrigger=PropertyChanged}"/>
+            </DockPanel>
+            <TextBlock Text="Type a full path with optional arguments, or use Browse to select the exe."
+                       Style="{StaticResource CaptionStyle}" Margin="0,0,0,14"/>
+
+            <Grid Margin="0,0,0,14">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="16"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="Check Interval (seconds)" Style="{StaticResource CaptionStyle}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding CheckIntervalSeconds, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="Max Restart Attempts" Style="{StaticResource CaptionStyle}" Margin="0,0,0,4"/>
+                    <TextBox Text="{Binding MaxRestartAttempts, UpdateSourceTrigger=PropertyChanged}"/>
+                </StackPanel>
+            </Grid>
+
+            <CheckBox Content="Kill process if hung" IsChecked="{Binding KillIfHung}" Margin="0,0,0,16"/>
+
+            <TextBlock Text="{Binding ValidationError}" Foreground="#FF6B6B"
+                       Visibility="{Binding ValidationError, Converter={StaticResource NullToCollapsed}}"/>
+        </StackPanel>
+
+        <DockPanel Grid.Row="1" HorizontalAlignment="Right">
+            <Button Content="Cancel" Margin="0,0,8,0" Click="Cancel_Click"/>
+            <Button Content="Add Application" Style="{StaticResource PrimaryButton}" Click="Add_Click"/>
+        </DockPanel>
+    </Grid>
+</Window>
